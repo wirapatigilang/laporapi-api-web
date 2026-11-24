@@ -83,7 +83,7 @@ Warga yang belum punya akun mendaftar dari aplikasi Android agar dapat masuk dan
 - **FR-001** (FR-01): Sistem MUST menerima pendaftaran Pelapor dengan nama, nomor HP, email, dan kata sandi.
 - **FR-002** (FR-01, 3a): Sistem MUST menolak data yang tidak lengkap atau salah format dengan 422 dan pesan bahasa Indonesia per kolom.
 - **FR-003** (FR-01, 3b): Sistem MUST menolak nomor HP atau email yang sudah terdaftar dengan 409 "Nomor HP/email sudah terdaftar".
-- **FR-004** (NFR-02): Sistem MUST menyimpan kata sandi sebagai *hash* dan mensyaratkan paling sedikit 8 karakter.
+- **FR-004** (NFR-02): Sistem MUST menyimpan kata sandi sebagai *hash* dan mensyaratkan paling sedikit 8 dan paling banyak 200 karakter.
 - **FR-005**: Sistem MUST memberi peran `REPORTER` dan status aktif pada akun yang dibuat lewat pendaftaran.
 - **FR-006** (NFR-05): Tanggapan berhasil MUST tidak memuat kata sandi atau *hash*-nya.
 

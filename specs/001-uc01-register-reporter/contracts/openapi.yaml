@@ -1,0 +1,70 @@
+openapi: 3.1.0
+info:
+  title: Lapor Api – UC-01 Mendaftar Akun Pelapor
+  version: 0.1.0
+paths:
+  /api/auth/register:
+    post:
+      summary: Pelapor mendaftar akun (UC-01)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, phoneNumber, email, password]
+              properties:
+                name: { type: string, minLength: 2, maxLength: 100 }
+                phoneNumber: { type: string, example: "081234567890" }
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8, maxLength: 200 }
+      responses:
+        "201":
+          description: Akun Pelapor tersimpan (langkah 4–5)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { $ref: "#/components/schemas/PublicUser" }
+        "409":
+          description: "Nomor HP/email sudah terdaftar (3b)"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { error: { code: ALREADY_REGISTERED, message: "Nomor HP/email sudah terdaftar" } }
+        "422":
+          description: Data tidak lengkap atau salah format (3a)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                error:
+                  code: VALIDATION_ERROR
+                  message: Data tidak valid
+                  fields: { password: "Kata sandi minimal 8 karakter" }
+components:
+  schemas:
+    PublicUser:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        phoneNumber: { type: string }
+        email: { type: string }
+        role: { type: string, enum: [REPORTER, ADMIN, SECTOR_OPERATOR, AGENCY_OFFICER] }
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time }
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string }
+            message: { type: string }
+            fields:
+              type: object
+              additionalProperties: { type: string }
