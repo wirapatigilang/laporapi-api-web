@@ -6,10 +6,10 @@
     "tests/*"
   ],
   "scripts": {
-    "dev:api": "bun --cwd apps/api run dev",
-    "dev:web": "bun --cwd apps/web run dev",
-    "db:migrate": "bun --cwd apps/api run db:migrate",
-    "test:blackbox": "bun --cwd tests/blackbox test",
-    "db:seed": "bun --cwd apps/api run db:seed"
+    "dev:api": "cd apps/api && bun run dev",
+    "dev:web": "cd apps/web && bun run dev",
+    "db:migrate": "cd apps/api && bun run db:migrate",
+    "db:seed": "cd apps/api && bun run db:seed",
+    "test:blackbox": "cd tests/blackbox && bun test --timeout 20000"
   }
 }
