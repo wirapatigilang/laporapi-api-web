@@ -26,6 +26,17 @@ for (const [name, type] of AGENCIES) {
   await sql`INSERT INTO agencies (name, type) VALUES (${name}, ${type}) ON CONFLICT (name) DO NOTHING`;
 }
 
+// Kecamatan (batas wilayah) dan Polsek wilayahnya. Asumsi awal: satu Polsek per Kecamatan, dengan nama yang sama.
+const districtDir = new URL("../../data/districts/", import.meta.url).pathname;
+for (const file of (await Array.fromAsync(new Bun.Glob("61.09.*.geojson").scan(districtDir))).sort()) {
+  const feature = await Bun.file(districtDir + file).json();
+  const { code, name } = feature.properties as { code: string; name: string };
+  const [sector] = await sql`SELECT id FROM police_sectors WHERE name = ${"Polsek " + name}`;
+  await sql`INSERT INTO districts (code, name, police_sector_id, boundary)
+    VALUES (${code}, ${name}, ${sector?.id ?? null}, ${feature.geometry})
+    ON CONFLICT (code) DO NOTHING`;
+}
+
 const hash = await Bun.password.hash(password, { algorithm: "argon2id" });
 const [sekadauHilir] = await sql`SELECT id FROM police_sectors WHERE name = 'Polsek Sekadau Hilir'`;
 const [bpbd] = await sql`SELECT id FROM agencies WHERE type = 'BPBD'`;

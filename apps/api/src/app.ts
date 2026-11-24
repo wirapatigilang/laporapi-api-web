@@ -2,6 +2,8 @@ import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
 import { ApiError } from "./lib/errors";
 import { authRoutes } from "./routes/auth";
+import { notificationRoutes } from "./routes/notifications";
+import { reportRoutes } from "./routes/reports";
 
 export function createApp() {
   return new Elysia()
@@ -24,5 +26,7 @@ export function createApp() {
       return { error: { code: "INTERNAL_ERROR", message: "Terjadi kesalahan pada server" } };
     })
     .get("/api/health", () => ({ status: "ok" }))
-    .use(authRoutes);
+    .use(authRoutes)
+    .use(reportRoutes)
+    .use(notificationRoutes);
 }

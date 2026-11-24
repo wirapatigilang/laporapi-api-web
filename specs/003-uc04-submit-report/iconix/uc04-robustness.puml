@@ -1,0 +1,67 @@
+@startuml
+left to right direction
+title Robustness Diagram UC-04 Mengirim Laporan Karhutla
+actor "Pelapor" as pel
+boundary "Layar Isi Laporan (Android)" as bIsi
+control "Periksa token dan peran Pelapor (401/403)" as cToken
+control "Terima foto, koordinat, akurasi, waktu lapor, keterangan, clientId" as cTerima
+control "Periksa clientId sudah pernah diterima (kirim ulang draf) [3b]" as cIdKlien
+control "Periksa foto bertipe gambar dan keterangan ≤ 300 karakter" as cValid
+control "Baca tag GPS EXIF dan ubah ke derajat desimal" as cExif
+control "Tentukan lokasi Laporan (GPS perangkat; foto bila GPS kosong)" as cLokasi
+control "Hitung jarak foto–perangkat (Haversine), tandai bila > 50 m" as cSelisih
+control "Cari kecamatan dan Polsek dari koordinat" as cWilayah
+control "Tandai 'Polsek belum ditentukan' bila Kecamatan tanpa Polsek [6a]" as cTanpaPolsek
+control "Cari Kejadian terbuka ≤ 50 m (Haversine)" as cGanda
+control "Buat nomor laporan" as cNomor
+control "Simpan Laporan, Kejadian, dan Riwayat Status" as cSimpan
+control "Kirim Notifikasi ke Admin Polres dan Operator Polsek" as cNotif
+control "Kembalikan nomor laporan dan status" as cBalas
+control "Tolak: foto wajib / keterangan terlalu panjang [4a, 4c]" as cErrFoto
+control "Tolak: lokasi tidak terdeteksi [5d]" as cErrLok
+control "Tolak: di luar Sekadau, arahkan ke 110 [6b]" as cErrLuar
+entity "District (Kecamatan)" as eKec
+entity "PoliceSector (Polsek)" as ePolsek
+entity "Incident (Kejadian)" as eKejadian
+entity "Report (Laporan)" as eLaporan
+entity "StatusHistory (Riwayat Status)" as eRiwayat
+entity "Notification (Notifikasi)" as eNotif
+boundary "Layanan Push (mis. FCM)" as bPush
+boundary "Dasbor Laporan (web)" as bDasbor
+pel --> bIsi
+bIsi --> cToken
+cToken --> cTerima
+cTerima --> cIdKlien
+cIdKlien --> eLaporan : cek
+cIdKlien --> bIsi : laporan lama
+cTerima --> cValid
+cValid --> cExif
+cValid --> cLokasi
+cExif --> cLokasi
+cExif --> cSelisih
+cLokasi --> cSelisih
+cLokasi --> cWilayah
+cWilayah --> eKec
+cWilayah --> ePolsek
+cWilayah --> cGanda
+cWilayah --> cTanpaPolsek
+cTanpaPolsek --> cGanda
+cGanda --> eKejadian : cek
+cGanda --> cSimpan
+cNomor --> cSimpan
+cSimpan --> eLaporan
+cSimpan --> eRiwayat
+cSimpan --> eKejadian
+cSimpan --> cNotif : Kejadian baru saja
+cNotif --> eNotif
+cNotif --> bPush
+cNotif --> bDasbor
+cSimpan --> cBalas
+cBalas --> bIsi
+cValid --> cErrFoto
+cErrFoto --> bIsi
+cLokasi --> cErrLok
+cErrLok --> bIsi
+cWilayah --> cErrLuar
+cErrLuar --> bIsi
+@enduml

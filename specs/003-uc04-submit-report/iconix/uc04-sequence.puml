@@ -1,0 +1,75 @@
+@startuml
+title Sequence Diagram UC-04 Mengirim Laporan Karhutla
+autonumber
+actor "Pelapor" as pel
+boundary "ReportFormScreen (Android)" as lyr
+control "ReportService" as lap
+control "ExifService" as exif
+control "GeoService" as geo
+control "DuplicateDetectionService" as gnd
+control "NotificationService" as ntf
+entity "Report" as lpr
+entity "Incident" as kjd
+entity "StatusHistory" as rws
+note over pel : 1–3. Pelapor memotret, Android mengisi GPS, akurasi, waktu; Pelapor menekan Kirim.
+pel -> lyr : foto, keterangan, tekan Kirim
+lyr -> lap : POST /api/reports (multipart: photo + data + clientId, Bearer token)
+lap -> lap : requireRole(REPORTER)
+alt tanpa token / bukan Pelapor
+lap --> lyr : 401 / 403
+end
+lap -> lpr : findByClientId(reporterId, clientId)
+alt 3b. clientId sudah pernah diterima
+lap --> lyr : 200 existing report (not saved again)
+end
+note over pel : 4. Sistem memeriksa foto dan keterangan.
+lap -> lap : validate(photo, description)
+alt 4a / 4c. foto tidak ada atau keterangan > 300
+lap --> lyr : 422 pesan galat
+end
+note over pel : 5. Sistem membaca tag GPS EXIF dan menentukan lokasi Laporan.
+lap -> exif : readCoordinates(photo)
+exif --> lap : photoCoordinate? (null for 5a/5c)
+lap -> lap : resolveLocation(deviceGps, photoCoordinate)
+alt 5d. GPS perangkat dan EXIF kosong
+lap --> lyr : 422 'Lokasi tidak terdeteksi'
+end
+opt GPS perangkat dan koordinat foto sama-sama ada
+lap -> geo : haversine(deviceGps, photoCoordinate)
+geo --> lap : distance (m)
+lap -> lap : flagLocationMismatch() if distance > 50 m [5b]
+end
+note over pel : 6. Sistem mencari Kecamatan (wilayah Sekadau) dan Polsek dari koordinat.
+lap -> geo : findDistrict(location)
+geo --> lap : district + policeSectorId?
+alt 6b. tidak ada kecamatan (di luar Sekadau)
+lap --> lyr : 422 {message, emergencyNumber: '110'}
+end
+opt 6a. Kecamatan tanpa Polsek
+lap -> lap : policeSectorNote = 'Polsek belum ditentukan'
+end
+note over pel : 7. Sistem memeriksa laporan ganda dalam radius 50 m.
+note across : Langkah 7–8 dijalankan dalam satu transaksi dengan advisory lock agar laporan bersamaan tidak membuat dua Kejadian.
+lap -> gnd : findOpenIncidentNearby(location)
+gnd -> kjd : listOpen()
+gnd -> geo : haversine(location, primaryReport) for each incident
+gnd --> lap : incident? (nearest, round(d, 1 mm) ≤ 50 m)
+note over pel : 8. Sistem menyimpan Laporan (status Laporan Diterima) dan Riwayat Status.
+lap -> lap : number = ReportNumberService.generate()
+alt tidak ada Kejadian terbuka
+lap -> lpr : save(number, RECEIVED)
+lap -> kjd : create(primaryReport = report)
+lap -> rws : record(STATUS, RECEIVED)
+note over pel : 9. Notifikasi ke Admin Polres dan Operator Polsek wilayah.
+lap -> ntf : notifyNewReport(report): admins + sector operators
+note across : Iterasi 3: NotificationService menyimpan Notification (dibaca lewat GET /api/notifications). Push (FCM) dan siaran SSE ke dasbor menyusul [SEPAKATI].
+lap --> lyr : 201 {report: {reportNumber, status: RECEIVED}, message}
+else 7a. Kejadian terbuka ditemukan
+lap -> lpr : save(number, primary report status)
+lap -> kjd : addDuplicate(report)
+lap -> rws : record(STATUS, primary status, 'Tergabung dengan …')
+lap --> lyr : 201 {report: {isDuplicate, primaryReportNumber}, message}
+end
+note over pel : 10. Android menampilkan 'Laporan LA-xxxx terkirim'.
+lyr --> pel : tampilkan pesan
+@enduml

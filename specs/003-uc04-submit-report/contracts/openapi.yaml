@@ -1,0 +1,110 @@
+openapi: 3.1.0
+info:
+  title: Lapor Api – UC-04 Mengirim Laporan Karhutla
+  version: 0.3.0
+paths:
+  /api/reports:
+    post:
+      summary: Pelapor mengirim Laporan karhutla (UC-04)
+      security: [{ bearer: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [photo]
+              properties:
+                photo: { type: string, format: binary, description: "Foto asli dengan EXIF utuh; JPEG/PNG/WebP/HEIC, maks. 10 MB" }
+                deviceLat: { type: number, minimum: -90, maximum: 90 }
+                deviceLng: { type: number, minimum: -180, maximum: 180 }
+                gpsAccuracy: { type: number, minimum: 0, description: meter }
+                reportedAt: { type: string, format: date-time }
+                description: { type: string, maxLength: 300 }
+                clientId: { type: string, maxLength: 100 }
+      responses:
+        "201":
+          description: Laporan baru (langkah 8–10) atau laporan ganda (7a, isDuplicate = true)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Laporan LA-0001 terkirim, sedang diverifikasi" }
+                  report: { $ref: "#/components/schemas/SubmittedReport" }
+        "200":
+          description: Kirim ulang dengan clientId yang sama (3b); Laporan lama dikembalikan
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  report: { $ref: "#/components/schemas/SubmittedReport" }
+        "401": { description: Belum masuk / token kedaluwarsa }
+        "403": { description: Bukan peran REPORTER }
+        "422":
+          description: >
+            VALIDATION_ERROR (4a "Foto wajib dilampirkan", 4c batas 300 karakter, foto > 10 MB, koordinat/reportedAt tidak valid),
+            LOCATION_UNAVAILABLE (5d "Lokasi tidak terdeteksi, aktifkan GPS lalu kirim ulang"),
+            OUTSIDE_SERVICE_AREA (6b, dengan emergencyNumber "110")
+          content:
+            application/json:
+              examples:
+                outside:
+                  value:
+                    error:
+                      code: OUTSIDE_SERVICE_AREA
+                      message: Lokasi di luar wilayah layanan Polres Sekadau, silakan hubungi 110
+                      emergencyNumber: "110"
+  /api/notifications:
+    get:
+      summary: Notifikasi milik pengguna yang masuk (terbaru dulu)
+      security: [{ bearer: [] }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notifications:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string }
+                        reportId: { type: [string, "null"] }
+                        title: { type: string }
+                        body: { type: string }
+                        isRead: { type: boolean }
+                        createdAt: { type: string, format: date-time }
+components:
+  securitySchemes:
+    bearer: { type: http, scheme: bearer, bearerFormat: JWT }
+  schemas:
+    SubmittedReport:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        reportNumber: { type: string, example: LA-0001 }
+        status: { type: string, enum: [RECEIVED, VERIFIED, REJECTED, ASSIGNED, IN_PROGRESS, RESOLVED] }
+        statusLabel: { type: string, example: Laporan Diterima }
+        incidentId: { type: string }
+        isDuplicate: { type: boolean }
+        primaryReportNumber: { type: [string, "null"] }
+        latitude: { type: number }
+        longitude: { type: number }
+        locationSource: { type: string, enum: [DEVICE, PHOTO] }
+        gpsAccuracy: { type: [number, "null"] }
+        photoCoordinate: { type: [object, "null"], properties: { latitude: { type: number }, longitude: { type: number } } }
+        photoCoordinateNote: { type: [string, "null"], example: Koordinat foto tidak tersedia }
+        hasLocationMismatch: { type: boolean }
+        locationMismatchMeters: { type: [number, "null"], description: dibulatkan 0,1 m }
+        district: { type: object, properties: { id: { type: string }, name: { type: string } } }
+        policeSector: { type: [object, "null"], properties: { id: { type: string }, name: { type: string } } }
+        policeSectorNote: { type: [string, "null"], example: Polsek belum ditentukan }
+        description: { type: [string, "null"] }
+        reportedAt: { type: string, format: date-time }
+        receivedAt: { type: string, format: date-time }
