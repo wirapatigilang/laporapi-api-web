@@ -1,0 +1,11 @@
+{
+  "name": "@lapor-api/blackbox",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "bun test --timeout 20000"
+  },
+  "devDependencies": {
+    "piexifjs": "^1.0.6"
+  }
+}

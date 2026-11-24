@@ -1,0 +1,8 @@
+node_modules/
+.env
+.env.*
+!.env.example
+apps/api/uploads/
+.svelte-kit/
+build/
+tests/blackbox/fixtures/generated/

@@ -1,0 +1,26 @@
+@startuml
+left to right direction
+title Robustness Diagram UC-01 Mendaftar Akun Pelapor
+actor "Pelapor" as pel
+boundary "Layar Daftar (Android)" as bDaftar
+control "Periksa kelengkapan dan format data" as cFormat
+control "Periksa nomor HP dan email belum terdaftar" as cUnik
+control "Hash kata sandi dan simpan Pengguna peran Pelapor" as cSimpan
+control "Kirim tanggapan berhasil" as cOk
+control "Kembalikan pesan galat per kolom [3a]" as cErrKolom
+control "Tolak: nomor HP/email sudah terdaftar [3b]" as cErrAda
+entity "User (Pengguna)" as ePengguna
+boundary "Layar Masuk (Android)" as bMasuk
+pel --> bDaftar
+bDaftar --> cFormat
+cFormat --> cUnik
+cUnik --> ePengguna : cek
+cUnik --> cSimpan
+cSimpan --> ePengguna
+cSimpan --> cOk
+cOk --> bMasuk
+cFormat --> cErrKolom
+cErrKolom --> bDaftar
+cUnik --> cErrAda
+cErrAda --> bDaftar
+@enduml

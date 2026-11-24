@@ -1,0 +1,11 @@
+{
+  "name": "lapor-api",
+  "private": true,
+  "workspaces": ["apps/*", "tests/*"],
+  "scripts": {
+    "dev:api": "bun --cwd apps/api run dev",
+    "dev:web": "bun --cwd apps/web run dev",
+    "db:migrate": "bun --cwd apps/api run db:migrate",
+    "test:blackbox": "bun --cwd tests/blackbox test"
+  }
+}

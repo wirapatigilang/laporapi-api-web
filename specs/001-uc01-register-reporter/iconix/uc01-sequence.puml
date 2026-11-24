@@ -1,0 +1,29 @@
+@startuml
+title Sequence Diagram UC-01 Mendaftar Akun Pelapor
+autonumber
+actor "Pelapor" as pel
+boundary "RegisterScreen (Android)" as lyr
+control "AuthService" as auth
+entity "User" as png
+note over pel : 1–2. Pelapor mengisi nama, nomor HP, email, kata sandi lalu menekan Daftar.
+pel -> lyr : isi data, tekan Daftar
+lyr -> auth : POST /api/auth/register
+note over pel : 3. Sistem memeriksa format dan keunikan.
+auth -> auth : validateFormat(data)
+alt 3a. format salah
+auth --> lyr : 422 + pesan per kolom
+else format benar
+auth -> png : findByPhoneOrEmail(phone, email)
+png --> auth : user?
+alt 3b. sudah terdaftar
+auth --> lyr : 409 'Nomor HP/email sudah terdaftar'
+else belum terdaftar
+note over pel : 4. Sistem menyimpan Pengguna peran Pelapor dengan kata sandi ter-hash.
+auth -> auth : hashPassword(password)
+auth -> png : save(role = REPORTER)
+note over pel : 5. Sistem mengirim tanggapan berhasil; Android membuka Layar Masuk.
+auth --> lyr : 201 Created
+end
+end
+lyr --> pel : tampilkan Layar Masuk / pesan galat
+@enduml
