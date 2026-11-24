@@ -28,9 +28,9 @@
 
 		<form method="POST" onsubmit={() => (submitting = true)}>
 			<label>
-				<span>Nomor HP atau email</span>
-				<input name="identifier" autocomplete="username" required defaultValue={form?.identifier ?? ''} />
-				{#if form?.fields?.identifier}<small class="field-error">{form.fields.identifier}</small>{/if}
+				<span>Nomor HP</span>
+				<input name="phoneNumber" type="tel" inputmode="tel" autocomplete="tel" placeholder="08xxxxxxxxxx" required defaultValue={form?.phoneNumber ?? ''} />
+				{#if form?.fields?.phoneNumber}<small class="field-error">{form.fields.phoneNumber}</small>{/if}
 			</label>
 			<label>
 				<span>Kata sandi</span>

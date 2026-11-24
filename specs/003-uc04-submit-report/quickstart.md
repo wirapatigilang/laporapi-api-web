@@ -3,9 +3,9 @@
 ```bash
 # 1. Daftar dan masuk sebagai Pelapor (kanal android) untuk mendapat token
 curl -X POST http://localhost:3000/api/auth/register -H 'Content-Type: application/json' \
-  -d '{"name":"Budi","phoneNumber":"081234567890","email":"budi@contoh.id","password":"rahasia123"}'
+  -d '{"name":"Budi","phoneNumber":"081234567890","password":"rahasia123"}'
 TOKEN=$(curl -s -X POST http://localhost:3000/api/auth/login -H 'Content-Type: application/json' \
-  -d '{"identifier":"081234567890","password":"rahasia123","channel":"android"}' | sed 's/.*"token":"\([^"]*\)".*/\1/')
+  -d '{"phoneNumber":"081234567890","password":"rahasia123","channel":"android"}' | sed 's/.*"token":"\([^"]*\)".*/\1/')
 
 # 2. Kirim laporan (foto apa saja; koordinat di Kecamatan Sekadau Hilir)
 curl -X POST http://localhost:3000/api/reports -H "Authorization: Bearer $TOKEN" \

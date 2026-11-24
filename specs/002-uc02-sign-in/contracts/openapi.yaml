@@ -12,9 +12,9 @@ paths:
           application/json:
             schema:
               type: object
-              required: [identifier, password, channel]
+              required: [phoneNumber, password, channel]
               properties:
-                identifier: { type: string, description: Nomor HP atau email }
+                phoneNumber: { type: string, description: "Nomor HP (08…, 62…, atau +62…)" }
                 password: { type: string }
                 channel: { type: string, enum: [web, android] }
       responses:
@@ -28,7 +28,7 @@ paths:
                   token: { type: string }
                   expiresAt: { type: string, format: date-time }
                   user: { $ref: "#/components/schemas/SessionUser" }
-        "401": { description: "3a Nomor HP/email atau kata sandi salah (code INVALID_CREDENTIALS)" }
+        "401": { description: "3a Nomor HP atau kata sandi salah (code INVALID_CREDENTIALS)" }
         "403": { description: "3b ACCOUNT_INACTIVE 'Akun Anda tidak aktif, hubungi Admin Polres' / 3c CHANNEL_NOT_ALLOWED 'Akun pelapor hanya dapat dipakai di aplikasi Android'" }
         "422": { description: "Kolom wajib kosong atau channel tidak dikenal (VALIDATION_ERROR)" }
   /api/auth/me:
@@ -55,7 +55,6 @@ components:
         id: { type: string, format: uuid }
         name: { type: string }
         phoneNumber: { type: string }
-        email: { type: string }
         role: { type: string, enum: [REPORTER, ADMIN, SECTOR_OPERATOR, AGENCY_OFFICER] }
         policeSector: { type: [object, "null"], properties: { id: { type: string }, name: { type: string } } }
         agency: { type: [object, "null"], properties: { id: { type: string }, name: { type: string } } }

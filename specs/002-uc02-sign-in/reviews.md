@@ -32,3 +32,13 @@ Hasil: **lolos**.
 | Regresi | Tabel `users` berubah → kasus uji UC-01 wajib dijalankan ulang |
 
 Hasil: **lolos**.
+
+
+## Perubahan requirement (2026-11-24): masuk hanya dengan nomor HP
+
+| No | Dampak | Tindakan |
+|---|---|---|
+| CR-2.1 | Teks UC-02 langkah 1 dan 3a menyebut email | Spec diperbarui; pesan 3a "Nomor HP atau kata sandi salah" |
+| CR-2.2 | Kontrak `POST /api/auth/login` memakai `identifier` (nomor HP atau email) | Diganti `phoneNumber`; perlu disampaikan ke pengembang Android |
+| CR-2.3 | Robustness dan sequence menyebut email/`findByPhoneOrEmail` | Label dan pesan diubah menjadi nomor HP/`findByPhoneNumber` |
+| CR-2.4 | UJ-02.09 (masuk dengan email) kehilangan dasar | Diganti masuk dengan `+62…`; ditambah UJ-02.16 |

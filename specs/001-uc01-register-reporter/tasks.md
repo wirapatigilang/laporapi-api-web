@@ -28,7 +28,7 @@ description: "Task list UC-01 Mendaftar Akun Pelapor"
 
 - [x] T009 [US1] Migrasi `apps/api/migrations/001_users.sql` (enum `user_role`, tabel `users`)
 - [x] T010 [P] [US1] Normalisasi nomor HP `apps/api/src/lib/phone.ts`
-- [x] T011 [US1] `UserRepository` (`findByPhoneOrEmail`, `create`) di `apps/api/src/repositories/user-repository.ts`
+- [x] T011 [US1] `UserRepository` (`findByPhoneNumber`, `create`) di `apps/api/src/repositories/user-repository.ts`
 - [x] T012 [US1] `AuthService.register` + `validateRegistration` di `apps/api/src/services/auth-service.ts`
 - [x] T013 [US1] Route `POST /api/auth/register` di `apps/api/src/routes/auth.ts`
 - [x] T014 [US1] Uji UJ-01.01, UJ-01.03 di `tests/blackbox/uc01-register.test.ts`
@@ -49,3 +49,10 @@ description: "Task list UC-01 Mendaftar Akun Pelapor"
 ## Dependencies
 
 Setup → Foundational → US1 → (US2, US3 paralel, berbagi endpoint yang sama) → Polish.
+
+## Revisi 2026-11-24: email dihapus
+
+- [x] T019 Migrasi `004_remove_user_email.sql` menghapus kolom `email`
+- [x] T020 `AuthService.validateRegistration` dan `register` tanpa email; 3b memeriksa nomor HP saja, pesan "Nomor HP sudah terdaftar"
+- [x] T021 `UserRepository.findByPhoneNumber` menggantikan `findByPhoneOrEmail`
+- [x] T022 Kasus uji UJ-01.06–UJ-01.10 disesuaikan (nomor HP 9/10 digit, awalan tidak sah, kolom kosong)

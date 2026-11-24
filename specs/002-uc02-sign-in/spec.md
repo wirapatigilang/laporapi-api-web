@@ -15,14 +15,14 @@
 **Prasyarat:** Pengguna sudah punya akun yang aktif. **Hasil akhir:** Pengguna mendapat sesi/token dan diarahkan ke halaman sesuai Peran.
 
 Basic course:
-1. Pengguna membuka Halaman Masuk (atau Layar Masuk di Android) dan mengisi nomor HP atau email serta kata sandi. Aplikasi menyertakan penanda kanal, yaitu `web` dari Halaman Masuk dan `android` dari aplikasi Android.
+1. Pengguna membuka Halaman Masuk (atau Layar Masuk di Android) dan mengisi nomor HP serta kata sandi. Aplikasi menyertakan penanda kanal, yaitu `web` dari Halaman Masuk dan `android` dari aplikasi Android.
 2. Pengguna menekan tombol Masuk.
 3. Sistem mencocokkan data dengan Pengguna yang tersimpan.
 4. Sistem membuat token sesi yang memuat Peran pengguna.
 5. Sistem mengarahkan pengguna sesuai Peran: Pelapor ke Layar Home, Admin Polres dan Operator Polsek ke Dasbor Laporan, Petugas Instansi ke Dasbor Laporan yang hanya berisi Laporan yang diteruskan ke Instansi-nya.
 
 Alternate course:
-- **3a.** Nomor HP/email atau kata sandi salah: "Nomor HP/email atau kata sandi salah" tanpa menyebut bagian mana yang salah.
+- **3a.** Nomor HP atau kata sandi salah: "Nomor HP atau kata sandi salah" tanpa menyebut bagian mana yang salah.
 - **3b.** Akun dinonaktifkan: "Akun Anda tidak aktif, hubungi Admin Polres".
 - **3c.** Pelapor mencoba masuk ke aplikasi web (kanal `web`): "Akun pelapor hanya dapat dipakai di aplikasi Android".
 - **Kapan saja.** Token kedaluwarsa: Sistem menolak permintaan berikutnya dan meminta pengguna masuk ulang.
@@ -37,6 +37,7 @@ Alternate course:
 - Q: Urutan pemeriksaan bila akun nonaktif dan kata sandi salah? → A: Kata sandi diperiksa lebih dulu; akun nonaktif dengan kata sandi salah tetap mendapat pesan 3a agar status akun tidak bocor.
 - Q: Penanda kanal tidak dikirim atau bernilai lain? → A: 422 dengan pesan pada kolom `channel`.
 - Q: Langkah 5 untuk Petugas Instansi (dasbor tersaring)? → A: UC-02 hanya mengarahkan ke Dasbor Laporan dan menampilkan nama Instansi pengguna; penyaringan isi dasbor adalah bagian UC-06 dan diuji di sana.
+- Q: Masuk dengan email? → A: Tidak. Keputusan Gilang 2026-11-24: masuk hanya dengan nomor HP dan kata sandi; kolom permintaan `identifier` diganti `phoneNumber`. Isian berupa email dijawab 401 dengan pesan 3a.
 - Q: Di mana token disimpan pada aplikasi web? → A: Cookie `httpOnly` yang dipasang server SvelteKit; peramban tidak memegang token di JavaScript.
 
 ## User Scenarios & Testing *(mandatory)*
@@ -48,7 +49,7 @@ Alternate course:
 **Acceptance Scenarios**:
 1. **Given** akun Admin Polres aktif, **When** masuk di Halaman Masuk dengan data benar, **Then** diarahkan ke Dasbor Laporan.
 2. **Given** akun Petugas Instansi aktif, **When** masuk dengan data benar, **Then** diarahkan ke Dasbor Laporan yang menampilkan nama Instansi-nya.
-3. **Given** akun Operator Polsek aktif, **When** masuk dengan email (bukan nomor HP), **Then** diarahkan ke Dasbor Laporan.
+3. **Given** akun Operator Polsek aktif, **When** masuk dengan nomor HP berawalan `+62…` untuk akun yang tersimpan `08…`, **Then** diarahkan ke Dasbor Laporan.
 
 ### User Story 2 - Pelapor masuk lewat Android (Priority: P1)
 
@@ -58,7 +59,7 @@ Alternate course:
 ### User Story 3 - Kegagalan masuk (Priority: P1) — 3a, 3b, 3c
 
 **Acceptance Scenarios**:
-1. **Given** kata sandi salah, **When** masuk di web, **Then** tampil "Nomor HP/email atau kata sandi salah" (API 401).
+1. **Given** kata sandi salah, **When** masuk di web, **Then** tampil "Nomor HP atau kata sandi salah" (API 401).
 2. **Given** nomor HP tidak terdaftar, **When** masuk, **Then** pesan sama dengan skenario 1.
 3. **Given** akun nonaktif dengan kata sandi benar, **When** masuk, **Then** tampil "Akun Anda tidak aktif, hubungi Admin Polres" (API 403).
 4. **Given** akun Pelapor, **When** masuk di Halaman Masuk web (kanal `web`), **Then** ditolak dengan "Akun pelapor hanya dapat dipakai di aplikasi Android" (API 403).
@@ -73,12 +74,13 @@ Alternate course:
 
 ### Edge Cases
 - Nomor HP ditulis `+62…` saat masuk tetap cocok dengan akun `08…` (normalisasi sama dengan UC-01).
+- Isian berupa email (format lama) dijawab 401 dengan pesan 3a.
 - Pengguna yang sudah masuk membuka Halaman Masuk langsung diarahkan ke Dasbor.
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
-- **FR-001** (FR-02): Sistem MUST menerima masuk dengan nomor HP atau email, kata sandi, dan penanda kanal.
+- **FR-001** (FR-02): Sistem MUST menerima masuk dengan nomor HP, kata sandi, dan penanda kanal.
 - **FR-002** (FR-02): Sistem MUST mengembalikan token yang memuat id dan Peran, dan aplikasi web MUST mengarahkan petugas ke Dasbor Laporan.
 - **FR-003** (FR-03, 3a): Data salah MUST dijawab 401 dengan pesan yang tidak menyebut bagian yang salah.
 - **FR-004** (FR-03, 3b): Akun nonaktif MUST ditolak 403 dengan pesannya.
@@ -92,7 +94,7 @@ Alternate course:
 - **PoliceSector (Polsek)**, **Agency (Instansi)**: data awal, dibutuhkan akun *seed*.
 
 ## Success Criteria *(mandatory)*
-- **SC-001**: Semua kasus uji UJ-02.01–UJ-02.15 lulus.
+- **SC-001**: Semua kasus uji UJ-02.01–UJ-02.16 lulus.
 - **SC-002**: Kasus uji UC-01 tetap lulus (regresi, karena tabel `users` berubah).
 
 ## Assumptions

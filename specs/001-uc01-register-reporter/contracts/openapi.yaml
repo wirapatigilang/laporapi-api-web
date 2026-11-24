@@ -12,11 +12,10 @@ paths:
           application/json:
             schema:
               type: object
-              required: [name, phoneNumber, email, password]
+              required: [name, phoneNumber, password]
               properties:
                 name: { type: string, minLength: 2, maxLength: 100 }
                 phoneNumber: { type: string, example: "081234567890" }
-                email: { type: string, format: email }
                 password: { type: string, minLength: 8, maxLength: 200 }
       responses:
         "201":
@@ -28,11 +27,11 @@ paths:
                 properties:
                   user: { $ref: "#/components/schemas/PublicUser" }
         "409":
-          description: "Nomor HP/email sudah terdaftar (3b)"
+          description: "Nomor HP sudah terdaftar (3b)"
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
-              example: { error: { code: ALREADY_REGISTERED, message: "Nomor HP/email sudah terdaftar" } }
+              example: { error: { code: ALREADY_REGISTERED, message: "Nomor HP sudah terdaftar" } }
         "422":
           description: Data tidak lengkap atau salah format (3a)
           content:
@@ -51,7 +50,6 @@ components:
         id: { type: string, format: uuid }
         name: { type: string }
         phoneNumber: { type: string }
-        email: { type: string }
         role: { type: string, enum: [REPORTER, ADMIN, SECTOR_OPERATOR, AGENCY_OFFICER] }
         isActive: { type: boolean }
         createdAt: { type: string, format: date-time }

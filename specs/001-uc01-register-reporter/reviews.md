@@ -52,3 +52,18 @@ Temuan analyze:
 - **A-2 (sedang)**: spec tidak menyebut panjang maksimal kata sandi. Ditetapkan batas atas 200 karakter untuk mencegah permintaan berlebihan; spec FR-004 dan kontrak (`maxLength: 200`) diperbarui.
 
 Hasil: **lolos**, `implement` boleh dijalankan.
+
+
+## 4. Perubahan requirement (2026-11-24): email dihapus
+
+Pemicu: keputusan Gilang, masuk memakai nomor HP dan kata sandi, email tidak diperlukan.
+
+| No | Dampak | Tindakan |
+|---|---|---|
+| CR-1.1 | Teks UC-01 langkah 1, 3, dan 3b menyebut email | Spec diperbarui; 3b menjadi "Nomor HP sudah terdaftar" |
+| CR-1.2 | Robustness: control keunikan dan control 3b menyebut email | Label control diubah; jumlah objek tetap |
+| CR-1.3 | Sequence: `findByPhoneOrEmail(phone, email)` | Diganti `findByPhoneNumber(phone)` |
+| CR-1.4 | Tabel `users` punya kolom `email` wajib | Migrasi baru `004_remove_user_email.sql` (migrasi lama tidak diubah agar basis data yang sudah berjalan ikut berubah) |
+| CR-1.5 | Kasus uji email kehilangan dasar | UJ-01.06/07 lama dihapus; ditambah uji batas nomor HP (9/10 digit, awalan tidak sah) agar aturan format punya bukti |
+
+Regresi: seluruh uji UC-01, UC-02, dan UC-04 dijalankan ulang, 54/54 lulus.

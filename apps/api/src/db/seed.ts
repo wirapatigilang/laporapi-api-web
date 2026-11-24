@@ -42,13 +42,13 @@ const [sekadauHilir] = await sql`SELECT id FROM police_sectors WHERE name = 'Pol
 const [bpbd] = await sql`SELECT id FROM agencies WHERE type = 'BPBD'`;
 
 const accounts = [
-  { name: "Admin Polres Sekadau", phone: "081100000001", email: "admin@polres-sekadau.test", role: "ADMIN", sector: null, agency: null },
-  { name: "Operator Polsek Sekadau Hilir", phone: "081100000002", email: "operator.sekadauhilir@polres-sekadau.test", role: "SECTOR_OPERATOR", sector: sekadauHilir.id, agency: null },
-  { name: "Petugas BPBD", phone: "081100000003", email: "petugas.bpbd@polres-sekadau.test", role: "AGENCY_OFFICER", sector: null, agency: bpbd.id },
+  { name: "Admin Polres Sekadau", phone: "081100000001", role: "ADMIN", sector: null, agency: null },
+  { name: "Operator Polsek Sekadau Hilir", phone: "081100000002", role: "SECTOR_OPERATOR", sector: sekadauHilir.id, agency: null },
+  { name: "Petugas BPBD", phone: "081100000003", role: "AGENCY_OFFICER", sector: null, agency: bpbd.id },
 ];
 for (const a of accounts) {
-  await sql`INSERT INTO users (name, phone_number, email, password_hash, role, police_sector_id, agency_id)
-    VALUES (${a.name}, ${a.phone}, ${a.email}, ${hash}, ${a.role}, ${a.sector}, ${a.agency})
+  await sql`INSERT INTO users (name, phone_number, password_hash, role, police_sector_id, agency_id)
+    VALUES (${a.name}, ${a.phone}, ${hash}, ${a.role}, ${a.sector}, ${a.agency})
     ON CONFLICT (phone_number) DO NOTHING`;
 }
 console.log(`seed selesai (kata sandi akun petugas: SEED_PASSWORD, bawaan ${password})`);

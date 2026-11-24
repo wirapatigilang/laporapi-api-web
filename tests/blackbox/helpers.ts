@@ -14,7 +14,6 @@ export function uniquePhone(): string {
   const tail = `${Date.now() % 1e7}`.padStart(7, "0") + `${counter % 1e4}`.padStart(4, "0");
   return `08${tail}`.slice(0, 13);
 }
-export const uniqueEmail = () => `uji${Date.now()}${++counter}@contoh.id`;
 
 export async function api(method: string, path: string, body?: unknown, token?: string) {
   const headers: Record<string, string> = {};
@@ -33,21 +32,21 @@ export async function api(method: string, path: string, body?: unknown, token?: 
 
 export const SEED_PASSWORD = process.env.SEED_PASSWORD ?? "LaporApi#2026";
 export const SEED = {
-  admin: "admin@polres-sekadau.test",
-  operator: "operator.sekadauhilir@polres-sekadau.test",
-  officer: "petugas.bpbd@polres-sekadau.test",
+  admin: "081100000001",
+  operator: "081100000002",
+  officer: "081100000003",
 };
 
 /** Mendaftarkan Pelapor baru lewat API lalu masuk (kanal android); mengembalikan token. */
 export async function newReporter() {
-  const data = { name: "Pelapor Uji", phoneNumber: uniquePhone(), email: uniqueEmail(), password: "rahasia123" };
+  const data = { name: "Pelapor Uji", phoneNumber: uniquePhone(), password: "rahasia123" };
   await api("POST", "/api/auth/register", data);
-  const res = await api("POST", "/api/auth/login", { identifier: data.phoneNumber, password: data.password, channel: "android" });
+  const res = await api("POST", "/api/auth/login", { phoneNumber: data.phoneNumber, password: data.password, channel: "android" });
   return { ...data, token: res.body.token as string, id: res.body.user?.id as string };
 }
 
-export async function loginAs(email: string, channel = "web") {
-  const res = await api("POST", "/api/auth/login", { identifier: email, password: SEED_PASSWORD, channel });
+export async function loginAs(phoneNumber: string, channel = "web") {
+  const res = await api("POST", "/api/auth/login", { phoneNumber, password: SEED_PASSWORD, channel });
   return res.body.token as string;
 }
 

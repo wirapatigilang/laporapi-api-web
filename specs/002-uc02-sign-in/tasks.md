@@ -38,5 +38,12 @@ description: "Task list UC-02 Masuk ke Sistem"
 
 ## Phase 8: Perbaikan setelah pemeriksaan (ditambahkan converge)
 - [x] T017 Pesan galat per kolom tampil di Halaman Masuk (sebelumnya hanya "Data tidak valid")
-- [x] T018 Isian nomor HP/email tidak hilang bila diketik sebelum halaman selesai dimuat (`defaultValue`), uji UJ-02.15
+- [x] T018 Isian nomor HP tidak hilang bila diketik sebelum halaman selesai dimuat (`defaultValue`), uji UJ-02.15
 - [x] T019 Gaya huruf global dipindah ke `+layout.svelte`
+
+## Revisi 2026-11-24: masuk hanya dengan nomor HP
+
+- [x] T020 `AuthService.login` menerima `phoneNumber` (bukan `identifier`), pesan 3a "Nomor HP atau kata sandi salah"
+- [x] T021 Halaman Masuk: label "Nomor HP", isian `type="tel"`
+- [x] T022 Akun *seed* tanpa email; uji memakai nomor HP *seed*
+- [x] T023 UJ-02.09 diubah (masuk dengan `+62…`), ditambah UJ-02.16 (isian email ditolak 401)

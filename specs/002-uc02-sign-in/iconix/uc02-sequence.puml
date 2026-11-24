@@ -6,15 +6,15 @@ boundary "LoginPage (web) / LoginScreen" as hal
 control "AuthService" as auth
 entity "User" as png
 boundary "DashboardPage / HomeScreen" as dsb
-note over usr : 1–2. Pengguna mengisi nomor HP/email dan kata sandi, lalu menekan Masuk.
-usr -> hal : isi identitas, tekan Masuk
-hal -> auth : POST /api/auth/login {identifier, password, channel}
+note over usr : 1–2. Pengguna mengisi nomor HP dan kata sandi, lalu menekan Masuk.
+usr -> hal : isi nomor HP dan kata sandi, tekan Masuk
+hal -> auth : POST /api/auth/login {phoneNumber, password, channel}
 note over usr : 3. Sistem mencocokkan data dengan Pengguna yang tersimpan.
-auth -> png : findByPhoneOrEmail(identifier)
+auth -> png : findByPhoneNumber(phoneNumber)
 png --> auth : user?
 auth -> png : verifyPassword(password)
 alt 3a. tidak ditemukan / kata sandi salah
-auth --> hal : 401 'Nomor HP/email atau kata sandi salah'
+auth --> hal : 401 'Nomor HP atau kata sandi salah'
 else 3b. isActive = false
 auth --> hal : 403 'Akun Anda tidak aktif, hubungi Admin Polres'
 else 3c. role REPORTER dan channel = web

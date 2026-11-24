@@ -25,9 +25,12 @@ Migrasi `002_sectors_agencies.sql`.
 
 | Kelas | Operasi | Pesan sequence |
 |---|---|---|
-| `AuthService` | `login(identifier, password, channel): { token, user }` | `POST /api/auth/login` |
-| `UserRepository` | `findByIdentifier(identifier)` | `findByPhoneOrEmail(identifier)` |
+| `AuthService` | `login(phoneNumber, password, channel): { token, user }` | `POST /api/auth/login` |
+| `UserRepository` | `findByPhoneNumber(phoneNumber)` | `findByPhoneNumber(phoneNumber)` |
 | `User` | `verifyPassword(password)` → `AuthService.verifyPassword(user, password)` | `verifyPassword(password)` |
 | `User` | `canSignInFrom(channel)` | 3c |
 | `AuthService` | `issueToken(userId, role)` | `issueToken(userId, role)` |
 | `AuthService` | `verifyToken(token)` (plugin `authGuard`) | catatan "kapan saja" |
+
+
+> Revisi 2026-11-24: masuk hanya dengan nomor HP; kolom `email` dihapus dari `users`.

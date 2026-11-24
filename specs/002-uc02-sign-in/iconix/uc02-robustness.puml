@@ -4,13 +4,13 @@ title Robustness Diagram UC-02 Masuk ke Sistem
 actor "Pengguna Terdaftar" as usr
 boundary "Halaman Masuk (web)" as bWeb
 boundary "Layar Masuk (Android)" as bAnd
-control "Cari Pengguna dari nomor HP atau email" as cCari
+control "Cari Pengguna dari nomor HP" as cCari
 control "Cocokkan kata sandi" as cSandi
 control "Periksa akun aktif" as cAktif
 control "Periksa kanal sesuai peran (Pelapor hanya Android)" as cKanal
 control "Buat token sesi berisi peran" as cToken
 control "Arahkan sesuai peran" as cArah
-control "Tampilkan 'Nomor HP/email atau kata sandi salah' [3a]" as cErrSalah
+control "Tampilkan 'Nomor HP atau kata sandi salah' [3a]" as cErrSalah
 control "Tampilkan 'Akun Anda tidak aktif' [3b]" as cErrNon
 control "Tolak: akun pelapor hanya untuk Android [3c]" as cErrKanal
 entity "User (Pengguna)" as ePengguna

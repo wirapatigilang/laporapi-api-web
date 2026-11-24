@@ -25,13 +25,13 @@ describe("UC-02 Masuk ke Sistem (web)", () => {
     const page = await openPage();
     await signIn(page, SEED.admin, "salahsalah");
     expect(new URL(page.url()).pathname).toBe("/login");
-    expect(await page.getByTestId("login-error").innerText()).toBe("Nomor HP/email atau kata sandi salah");
+    expect(await page.getByTestId("login-error").innerText()).toBe("Nomor HP atau kata sandi salah");
   });
 
   test("UJ-02.05 nomor HP tidak terdaftar → pesan sama dengan UJ-02.04", async () => {
     const page = await openPage();
     await signIn(page, "089999999999", "apapunitu1");
-    expect(await page.getByTestId("login-error").innerText()).toBe("Nomor HP/email atau kata sandi salah");
+    expect(await page.getByTestId("login-error").innerText()).toBe("Nomor HP atau kata sandi salah");
   });
 
   test("UJ-02.06 akun nonaktif → 'Akun Anda tidak aktif, hubungi Admin Polres'", async () => {
@@ -46,20 +46,20 @@ describe("UC-02 Masuk ke Sistem (web)", () => {
   test("UJ-02.07 akun Pelapor masuk ke aplikasi web → ditolak", async () => {
     const r = await newReporter();
     const page = await openPage();
-    await signIn(page, r.email, r.password);
+    await signIn(page, r.phoneNumber, r.password);
     expect(new URL(page.url()).pathname).toBe("/login");
     expect(await page.getByTestId("login-error").innerText()).toBe("Akun pelapor hanya dapat dipakai di aplikasi Android");
   });
 
-  test("UJ-02.09 Operator Polsek masuk dengan email → Dasbor Laporan wilayahnya", async () => {
+  test("UJ-02.09 Operator Polsek masuk dengan nomor HP berawalan +62 → Dasbor Laporan wilayahnya", async () => {
     const page = await openPage();
-    await signIn(page, SEED.operator, SEED_PASSWORD);
+    await signIn(page, "+62" + SEED.operator.slice(1), SEED_PASSWORD);
     expect(new URL(page.url()).pathname).toBe("/dashboard");
     expect(await page.getByTestId("scope-note").innerText()).toContain("Polsek Sekadau Hilir");
   });
 
   test("UJ-02.12 sesi web dengan token kedaluwarsa → kembali ke Halaman Masuk dengan pesan", async () => {
-    const [admin] = await db`SELECT id FROM users WHERE email = ${SEED.admin}`;
+    const [admin] = await db`SELECT id FROM users WHERE phone_number = ${SEED.admin}`;
     const expired = await signTestToken({ sub: admin.id, role: "ADMIN", exp: Math.floor(Date.now() / 1000) - 60 });
     const page = await openPage();
     await page.context().addCookies([{ name: "lapor_session", value: expired, url: WEB_URL }]);
@@ -79,10 +79,10 @@ describe("UC-02 Masuk ke Sistem (web)", () => {
   test("UJ-02.15 isian yang diketik sebelum halaman selesai dimuat tidak hilang", async () => {
     const page = await openPage();
     await page.goto(WEB_URL + "/login", { waitUntil: "domcontentloaded" });
-    await page.getByLabel("Nomor HP atau email").fill(SEED.admin);
+    await page.getByLabel("Nomor HP").fill(SEED.admin);
     await page.getByLabel("Kata sandi").fill("salahsalah");
     await page.waitForLoadState("networkidle");
     await Promise.all([page.waitForLoadState("networkidle"), page.getByRole("button", { name: "Masuk" }).click()]);
-    expect(await page.getByTestId("login-error").innerText()).toBe("Nomor HP/email atau kata sandi salah");
+    expect(await page.getByTestId("login-error").innerText()).toBe("Nomor HP atau kata sandi salah");
   });
 });

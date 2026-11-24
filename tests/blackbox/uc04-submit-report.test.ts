@@ -47,7 +47,7 @@ describe("UC-04 alur utama dan hak akses", () => {
     expect(await notifiedFor(adminToken, r.id)).toBe(1);
     expect(await notifiedFor(operatorToken, r.id)).toBe(1);
     const otherOperators = await db`SELECT count(*)::int AS n FROM notifications n JOIN users u ON u.id = n.recipient_id
-      WHERE n.report_id = ${r.id} AND u.role = 'SECTOR_OPERATOR' AND u.police_sector_id <> (SELECT police_sector_id FROM users WHERE email = ${SEED.operator})`;
+      WHERE n.report_id = ${r.id} AND u.role = 'SECTOR_OPERATOR' AND u.police_sector_id <> (SELECT police_sector_id FROM users WHERE phone_number = ${SEED.operator})`;
     expect(otherOperators[0].n).toBe(0);
   });
 

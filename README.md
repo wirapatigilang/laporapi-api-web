@@ -39,11 +39,11 @@ Nilai bawaan sudah cocok dengan langkah di atas. Untuk mengubahnya, atur variabe
 
 Kata sandi semua akun: `LaporApi#2026`
 
-| Peran | Email |
+| Peran | Nomor HP |
 |---|---|
-| Admin Polres | admin@polres-sekadau.test |
-| Operator Polsek Sekadau Hilir | operator.sekadauhilir@polres-sekadau.test |
-| Petugas Instansi (BPBD) | petugas.bpbd@polres-sekadau.test |
+| Admin Polres | 081100000001 |
+| Operator Polsek Sekadau Hilir | 081100000002 |
+| Petugas Instansi (BPBD) | 081100000003 |
 
 Akun Pelapor dibuat lewat `POST /api/auth/register` (aplikasi Android), dan Pelapor tidak bisa masuk ke web.
 

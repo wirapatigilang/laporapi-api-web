@@ -11,16 +11,16 @@ export const load: PageServerLoad = ({ locals, url }) => {
 export const actions: Actions = {
 	default: async ({ request, cookies }) => {
 		const form = await request.formData();
-		const identifier = String(form.get('identifier') ?? '');
+		const phoneNumber = String(form.get('phoneNumber') ?? '');
 		const password = String(form.get('password') ?? '');
 		// Langkah 1: Halaman Masuk selalu mengirim penanda kanal "web".
 		const res = await callApi('POST', '/api/auth/login', {
-			json: { identifier, password, channel: 'web' }
+			json: { phoneNumber, password, channel: 'web' }
 		});
 		if (res.status !== 200) {
 			const error = res.body?.error;
 			return fail(res.status, {
-				identifier,
+				phoneNumber,
 				message: error?.message ?? 'Tidak dapat masuk, coba lagi',
 				fields: error?.fields ?? {}
 			});

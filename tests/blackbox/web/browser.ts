@@ -14,9 +14,9 @@ export async function closeBrowser() {
 }
 
 /** Mengisi Halaman Masuk dan menekan tombol Masuk. */
-export async function signIn(page: Page, identifier: string, password: string) {
+export async function signIn(page: Page, phoneNumber: string, password: string) {
   await page.goto(WEB_URL + "/login");
-  await page.getByLabel("Nomor HP atau email").fill(identifier);
+  await page.getByLabel("Nomor HP").fill(phoneNumber);
   await page.getByLabel("Kata sandi").fill(password);
   await Promise.all([page.waitForLoadState("networkidle"), page.getByRole("button", { name: "Masuk" }).click()]);
 }
