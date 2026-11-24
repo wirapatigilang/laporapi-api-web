@@ -1,6 +1,16 @@
 import { ApiError, validationError, type FieldErrors } from "../lib/errors";
 import { normalizePhoneNumber } from "../lib/phone";
-import { UserRepository, toPublicUser, type PublicUser } from "../repositories/user-repository";
+import { UserRepository, toPublicUser, type PublicUser, type SessionUser, type User } from "../repositories/user-repository";
+import { tokenTtlSeconds } from "../config";
+
+export type Channel = "web" | "android";
+
+/** Penanda kanal: Pelapor hanya boleh masuk dari aplikasi Android (UC-02 3c). */
+export function canSignInFrom(user: Pick<User, "role">, channel: Channel): boolean {
+  return !(user.role === "REPORTER" && channel === "web");
+}
+
+type SignToken = (payload: Record<string, string | number>) => Promise<string>;
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -63,5 +73,43 @@ export const AuthService = {
       role: "REPORTER",
     });
     return toPublicUser(user);
+  },
+
+  verifyPassword(user: User, password: string): Promise<boolean> {
+    return Bun.password.verify(password, user.passwordHash);
+  },
+
+  async issueToken(sign: SignToken, user: User) {
+    const exp = Math.floor(Date.now() / 1000) + tokenTtlSeconds;
+    const token = await sign({ sub: user.id, role: user.role, exp });
+    return { token, expiresAt: new Date(exp * 1000).toISOString() };
+  },
+
+  /** UC-02 Masuk ke Sistem. */
+  async login(body: Record<string, unknown>, sign: SignToken): Promise<{ token: string; expiresAt: string; user: SessionUser }> {
+    const rawIdentifier = asText(body.identifier).trim();
+    const password = asText(body.password);
+    const channel = asText(body.channel);
+    const errors: FieldErrors = {};
+    if (!rawIdentifier) errors.identifier = "Nomor HP atau email wajib diisi";
+    if (!password) errors.password = "Kata sandi wajib diisi";
+    if (channel !== "web" && channel !== "android") errors.channel = "Penanda kanal harus web atau android";
+    if (Object.keys(errors).length > 0) throw validationError(errors);
+
+    // Langkah 3: nomor HP dinormalisasi seperti UC-01, email dibandingkan huruf kecil.
+    const identifier = rawIdentifier.includes("@")
+      ? rawIdentifier.toLowerCase()
+      : normalizePhoneNumber(rawIdentifier) ?? rawIdentifier;
+    const user = await UserRepository.findByIdentifier(identifier);
+    const invalid = new ApiError(401, "INVALID_CREDENTIALS", "Nomor HP/email atau kata sandi salah");
+    if (!user || !(await this.verifyPassword(user, password))) throw invalid; // 3a
+    if (!user.isActive) throw new ApiError(403, "ACCOUNT_INACTIVE", "Akun Anda tidak aktif, hubungi Admin Polres"); // 3b
+    if (!canSignInFrom(user, channel as Channel)) {
+      throw new ApiError(403, "CHANNEL_NOT_ALLOWED", "Akun pelapor hanya dapat dipakai di aplikasi Android"); // 3c
+    }
+
+    const { token, expiresAt } = await this.issueToken(sign, user); // langkah 4
+    const sessionUser = (await UserRepository.findSessionUser(user.id))!;
+    return { token, expiresAt, user: sessionUser };
   },
 };

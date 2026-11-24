@@ -1,0 +1,61 @@
+openapi: 3.1.0
+info:
+  title: Lapor Api – UC-02 Masuk ke Sistem
+  version: 0.2.0
+paths:
+  /api/auth/login:
+    post:
+      summary: Masuk (UC-02)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [identifier, password, channel]
+              properties:
+                identifier: { type: string, description: Nomor HP atau email }
+                password: { type: string }
+                channel: { type: string, enum: [web, android] }
+      responses:
+        "200":
+          description: Berhasil (langkah 4)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string }
+                  expiresAt: { type: string, format: date-time }
+                  user: { $ref: "#/components/schemas/SessionUser" }
+        "401": { description: "3a Nomor HP/email atau kata sandi salah (code INVALID_CREDENTIALS)" }
+        "403": { description: "3b ACCOUNT_INACTIVE 'Akun Anda tidak aktif, hubungi Admin Polres' / 3c CHANNEL_NOT_ALLOWED 'Akun pelapor hanya dapat dipakai di aplikasi Android'" }
+        "422": { description: "Kolom wajib kosong atau channel tidak dikenal (VALIDATION_ERROR)" }
+  /api/auth/me:
+    get:
+      summary: Data pengguna yang sedang masuk
+      security: [{ bearer: [] }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { $ref: "#/components/schemas/SessionUser" }
+        "401": { description: "UNAUTHENTICATED 'Silakan masuk terlebih dahulu' / TOKEN_EXPIRED 'Sesi berakhir, silakan masuk kembali'" }
+components:
+  securitySchemes:
+    bearer: { type: http, scheme: bearer, bearerFormat: JWT }
+  schemas:
+    SessionUser:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        phoneNumber: { type: string }
+        email: { type: string }
+        role: { type: string, enum: [REPORTER, ADMIN, SECTOR_OPERATOR, AGENCY_OFFICER] }
+        policeSector: { type: [object, "null"], properties: { id: { type: string }, name: { type: string } } }
+        agency: { type: [object, "null"], properties: { id: { type: string }, name: { type: string } } }

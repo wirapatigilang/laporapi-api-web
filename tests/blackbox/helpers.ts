@@ -30,3 +30,33 @@ export async function api(method: string, path: string, body?: unknown, token?: 
   try { json = JSON.parse(text); } catch { json = text; }
   return { status: res.status, body: json };
 }
+
+export const SEED_PASSWORD = process.env.SEED_PASSWORD ?? "LaporApi#2026";
+export const SEED = {
+  admin: "admin@polres-sekadau.test",
+  operator: "operator.sekadauhilir@polres-sekadau.test",
+  officer: "petugas.bpbd@polres-sekadau.test",
+};
+
+/** Mendaftarkan Pelapor baru lewat API lalu masuk (kanal android); mengembalikan token. */
+export async function newReporter() {
+  const data = { name: "Pelapor Uji", phoneNumber: uniquePhone(), email: uniqueEmail(), password: "rahasia123" };
+  await api("POST", "/api/auth/register", data);
+  const res = await api("POST", "/api/auth/login", { identifier: data.phoneNumber, password: data.password, channel: "android" });
+  return { ...data, token: res.body.token as string, id: res.body.user?.id as string };
+}
+
+export async function loginAs(email: string, channel = "web") {
+  const res = await api("POST", "/api/auth/login", { identifier: email, password: SEED_PASSWORD, channel });
+  return res.body.token as string;
+}
+
+/** Membuat JWT HS256 dengan rahasia uji (untuk menyiapkan kondisi token kedaluwarsa). */
+export async function signTestToken(payload: Record<string, unknown>) {
+  const secret = process.env.JWT_SECRET ?? "dev-only-secret-change-me";
+  const enc = (o: unknown) => Buffer.from(JSON.stringify(o)).toString("base64url");
+  const data = `${enc({ alg: "HS256", typ: "JWT" })}.${enc(payload)}`;
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = Buffer.from(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(data))).toString("base64url");
+  return `${data}.${sig}`;
+}

@@ -1,0 +1,40 @@
+@startuml
+left to right direction
+title Robustness Diagram UC-02 Masuk ke Sistem
+actor "Pengguna Terdaftar" as usr
+boundary "Halaman Masuk (web)" as bWeb
+boundary "Layar Masuk (Android)" as bAnd
+control "Cari Pengguna dari nomor HP atau email" as cCari
+control "Cocokkan kata sandi" as cSandi
+control "Periksa akun aktif" as cAktif
+control "Periksa kanal sesuai peran (Pelapor hanya Android)" as cKanal
+control "Buat token sesi berisi peran" as cToken
+control "Arahkan sesuai peran" as cArah
+control "Tampilkan 'Nomor HP/email atau kata sandi salah' [3a]" as cErrSalah
+control "Tampilkan 'Akun Anda tidak aktif' [3b]" as cErrNon
+control "Tolak: akun pelapor hanya untuk Android [3c]" as cErrKanal
+entity "User (Pengguna)" as ePengguna
+boundary "Dasbor Laporan (web)" as bDasbor
+boundary "Layar Home (Android)" as bHome
+control "Periksa token pada setiap permintaan" as cTokenCek
+control "Tolak dan minta masuk ulang (token kedaluwarsa)" as cUlang
+usr --> bWeb
+usr --> bAnd
+bWeb --> cCari
+bAnd --> cCari
+cCari --> ePengguna
+cCari --> cSandi
+cSandi --> cAktif
+cAktif --> cKanal
+cKanal --> cToken
+cToken --> cArah
+cArah --> bDasbor
+cArah --> bHome
+cCari --> cErrSalah
+cSandi --> cErrSalah
+cErrSalah --> bWeb
+cAktif --> cErrNon
+cKanal --> cErrKanal
+bDasbor --> cTokenCek
+cTokenCek --> cUlang
+@enduml

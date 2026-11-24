@@ -3,3 +3,5 @@ export const config = {
   databaseUrl: process.env.DATABASE_URL ?? "postgres://lapor:lapor@localhost:5432/lapor_api",
   jwtSecret: process.env.JWT_SECRET ?? "dev-only-secret-change-me",
 };
+
+export const tokenTtlSeconds = Number(process.env.TOKEN_TTL_SECONDS ?? 12 * 60 * 60);

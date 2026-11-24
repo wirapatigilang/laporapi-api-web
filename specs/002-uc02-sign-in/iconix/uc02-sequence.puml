@@ -1,0 +1,30 @@
+@startuml
+title Sequence Diagram UC-02 Masuk ke Sistem
+autonumber
+actor "Pengguna Terdaftar" as usr
+boundary "LoginPage (web) / LoginScreen" as hal
+control "AuthService" as auth
+entity "User" as png
+boundary "DashboardPage / HomeScreen" as dsb
+note over usr : 1–2. Pengguna mengisi nomor HP/email dan kata sandi, lalu menekan Masuk.
+usr -> hal : isi identitas, tekan Masuk
+hal -> auth : POST /api/auth/login {identifier, password, channel}
+note over usr : 3. Sistem mencocokkan data dengan Pengguna yang tersimpan.
+auth -> png : findByPhoneOrEmail(identifier)
+png --> auth : user?
+auth -> png : verifyPassword(password)
+alt 3a. tidak ditemukan / kata sandi salah
+auth --> hal : 401 'Nomor HP/email atau kata sandi salah'
+else 3b. isActive = false
+auth --> hal : 403 'Akun Anda tidak aktif, hubungi Admin Polres'
+else 3c. role REPORTER dan channel = web
+auth --> hal : 403 'Akun pelapor hanya untuk aplikasi Android'
+else valid
+note over usr : 4. Sistem membuat token sesi yang memuat Peran.
+auth -> auth : issueToken(userId, role)
+auth --> hal : 200 {token, role}
+note over usr : 5. Sistem mengarahkan sesuai Peran.
+hal -> dsb : redirect by role
+end
+note across : Kapan saja: setiap permintaan berikutnya membawa token; AuthService.verifyToken() menolak token kedaluwarsa dengan 401, lalu halaman meminta masuk ulang.
+@enduml
