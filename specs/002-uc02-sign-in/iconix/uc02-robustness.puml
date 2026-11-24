@@ -4,7 +4,7 @@ title Robustness Diagram UC-02 Masuk ke Sistem
 actor "Pengguna Terdaftar" as usr
 boundary "Halaman Masuk (web)" as bWeb
 boundary "Layar Masuk (Android)" as bAnd
-control "Cari Pengguna dari nomor HP" as cCari
+control "Normalkan nomor HP dan cari Pengguna" as cCari
 control "Cocokkan kata sandi" as cSandi
 control "Periksa akun aktif" as cAktif
 control "Periksa kanal sesuai peran (Pelapor hanya Android)" as cKanal

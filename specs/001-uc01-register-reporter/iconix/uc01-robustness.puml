@@ -4,7 +4,7 @@ title Robustness Diagram UC-01 Mendaftar Akun Pelapor
 actor "Pelapor" as pel
 boundary "Layar Daftar (Android)" as bDaftar
 control "Periksa kelengkapan dan format data" as cFormat
-control "Periksa nomor HP belum terdaftar" as cUnik
+control "Normalkan nomor HP (08…) dan periksa belum terdaftar" as cUnik
 control "Hash kata sandi dan simpan Pengguna peran Pelapor" as cSimpan
 control "Kirim tanggapan berhasil" as cOk
 control "Kembalikan pesan galat per kolom [3a]" as cErrKolom

@@ -10,7 +10,7 @@ note over usr : 1–2. Pengguna mengisi nomor HP dan kata sandi, lalu menekan Ma
 usr -> hal : isi nomor HP dan kata sandi, tekan Masuk
 hal -> auth : POST /api/auth/login {phoneNumber, password, channel}
 note over usr : 3. Sistem mencocokkan data dengan Pengguna yang tersimpan.
-auth -> png : findByPhoneNumber(phoneNumber)
+auth -> png : findByPhoneNumber(normalize(phoneNumber))
 png --> auth : user?
 auth -> png : verifyPassword(password)
 alt 3a. tidak ditemukan / kata sandi salah

@@ -13,7 +13,7 @@ auth -> auth : validateFormat(data)
 alt 3a. format salah
 auth --> lyr : 422 + pesan per kolom
 else format benar
-auth -> png : findByPhoneNumber(phone)
+auth -> png : findByPhoneNumber(normalize(phoneNumber))
 png --> auth : user?
 alt 3b. sudah terdaftar
 auth --> lyr : 409 'Nomor HP sudah terdaftar'
