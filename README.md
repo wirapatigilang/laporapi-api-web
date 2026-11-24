@@ -16,8 +16,10 @@ cd laporapi-api-web
 bun install
 
 # 2. Buat pengguna dan basis data PostgreSQL (sekali saja)
-psql -U postgres -c "CREATE ROLE lapor LOGIN PASSWORD 'lapor';"
-psql -U postgres -c "CREATE DATABASE lapor_api OWNER lapor;"
+#    macOS (Homebrew): superuser = nama user Mac, jadi pakai `-d postgres`.
+#    Linux/Windows: ganti `-d postgres` dengan `-U postgres`.
+psql -d postgres -c "CREATE ROLE lapor LOGIN PASSWORD 'lapor';"
+psql -d postgres -c "CREATE DATABASE lapor_api OWNER lapor;"
 
 # 3. Buat tabel dan data awal (Polsek, Instansi, 7 kecamatan, akun petugas)
 bun run db:migrate
@@ -48,7 +50,7 @@ Akun Pelapor dibuat lewat `POST /api/auth/register` (aplikasi Android), dan Pela
 ## Menjalankan uji Black Box
 
 ```bash
-psql -U postgres -c "CREATE DATABASE lapor_api_test OWNER lapor;"
+psql -d postgres -c "CREATE DATABASE lapor_api_test OWNER lapor;"
 DATABASE_URL=postgres://lapor:lapor@localhost:5432/lapor_api_test bun run db:migrate
 DATABASE_URL=postgres://lapor:lapor@localhost:5432/lapor_api_test bun run db:seed
 
