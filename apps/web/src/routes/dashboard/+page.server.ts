@@ -15,14 +15,16 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			filter[key] = v;
 		}
 	}
-	const [incidents, districts, sectors] = await Promise.all([
+	const [incidents, districts, sectors, notifications] = await Promise.all([
 		callApi('GET', `/api/incidents?${params}`, { token: locals.token }),
 		callApi('GET', '/api/districts', { token: locals.token }),
-		callApi('GET', '/api/police-sectors', { token: locals.token })
+		callApi('GET', '/api/police-sectors', { token: locals.token }),
+		callApi('GET', '/api/notifications', { token: locals.token })
 	]);
+	const unread: number = (notifications.body?.notifications ?? []).filter((n: { isRead: boolean }) => !n.isRead).length;
 	if (incidents.status === 401) redirect(303, '/login?expired=1');
 	if (incidents.status === 422) {
-		return { user: locals.user, filter, incidents: [], districts: districts.body?.districts ?? [], policeSectors: sectors.body?.policeSectors ?? [], filterError: Object.values(incidents.body.error.fields ?? {}).join(', ') };
+		return { user: locals.user, filter, incidents: [], districts: districts.body?.districts ?? [], policeSectors: sectors.body?.policeSectors ?? [], unread, filterError: Object.values(incidents.body.error.fields ?? {}).join(', ') };
 	}
 	if (incidents.status !== 200) error(incidents.status, incidents.body?.error?.message ?? 'Gagal memuat laporan');
 	return {
@@ -31,6 +33,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		incidents: incidents.body.incidents as any[],
 		districts: districts.body?.districts ?? [],
 		policeSectors: sectors.body?.policeSectors ?? [],
+		unread,
 		filterError: null as string | null
 	};
 };
