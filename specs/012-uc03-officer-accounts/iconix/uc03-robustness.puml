@@ -1,0 +1,43 @@
+@startuml
+left to right direction
+title Robustness Diagram UC-03 Mengelola Akun Petugas
+actor "Admin Polres" as adm
+boundary "Halaman Kelola Akun" as bKelola
+boundary "Formulir Akun" as bForm
+boundary "Dialog Konfirmasi Nonaktif" as bKonf
+control "Tampilkan daftar akun petugas" as cDaftar
+control "Periksa kelengkapan data" as cLengkap
+control "Periksa Polsek/Instansi sesuai peran [2c]" as cRelasi
+control "Periksa nomor HP belum dipakai" as cUnik
+control "Buat kata sandi awal dan simpan Pengguna" as cSimpan
+control "Tampilkan kata sandi awal satu kali kepada Admin" as cSandiAwal
+control "Tampilkan pesan pada kolom yang salah [4a, 2c]" as cErr
+control "Perbarui data Pengguna [2a]" as cUbah
+control "Ubah status akun menjadi tidak aktif [2b]" as cNon
+entity "User (Pengguna)" as ePengguna
+entity "PoliceSector (Polsek)" as ePolsek
+entity "Agency (Instansi)" as eInstansi
+adm --> bKelola
+adm --> bForm
+adm --> bKonf
+bKelola --> cDaftar
+cDaftar --> ePengguna
+bForm --> cLengkap
+cLengkap --> cRelasi
+cRelasi --> cUnik
+cUnik --> cSimpan
+cRelasi --> ePolsek
+cRelasi --> eInstansi
+cUnik --> ePengguna : cek
+cSimpan --> ePengguna
+cSimpan --> cSandiAwal
+cSandiAwal --> bKelola
+cLengkap --> cErr
+cRelasi --> cErr
+cUnik --> cErr
+cErr --> bForm
+bForm --> cUbah
+cUbah --> ePengguna
+bKonf --> cNon
+cNon --> ePengguna
+@enduml

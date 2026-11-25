@@ -7,6 +7,7 @@ import { notificationRoutes } from "./routes/notifications";
 import { reportRoutes } from "./routes/reports";
 import { dispatchRoutes } from "./routes/dispatch";
 import { handlingRoutes } from "./routes/handling";
+import { officerRoutes } from "./routes/officers";
 import { standbyRoutes } from "./routes/standby";
 import { verificationRoutes } from "./routes/verification";
 
@@ -38,5 +39,6 @@ export function createApp() {
     .use(verificationRoutes)
     .use(standbyRoutes)
     .use(dispatchRoutes)
-    .use(handlingRoutes);
+    .use(handlingRoutes)
+    .use(officerRoutes);
 }
