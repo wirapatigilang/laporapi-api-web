@@ -14,6 +14,9 @@
 	const canDecide = $derived(isAdmin && r.status === 'RECEIVED');
 	const isOperator = $derived(role === 'SECTOR_OPERATOR');
 	const standbyBlocked = $derived(r.status === 'REJECTED' ? 'Laporan sudah ditolak' : r.status === 'RESOLVED' ? 'Penanganan sudah selesai' : null);
+	const isOfficer = $derived(role === 'AGENCY_OFFICER');
+	const handlingOpen = $derived(r.status === 'ASSIGNED' || r.status === 'IN_PROGRESS');
+	const departBlocked = $derived(r.status === 'REJECTED' || r.status === 'RESOLVED');
 	const canDispatch = $derived(isAdmin && ['VERIFIED', 'ASSIGNED', 'IN_PROGRESS'].includes(r.status));
 
 	let confirming = $state<null | 'verify' | 'reject' | 'dispatch'>(null);
@@ -97,7 +100,23 @@
 				<textarea id="standby-note" name="note" rows="2" maxlength="500" disabled={!!standbyBlocked}></textarea>
 				<div class="buttons">
 					<button type="submit" class="primary" data-testid="standby-button" disabled={!!standbyBlocked || busy}>Siagakan Personel</button>
+					<button type="submit" class="ghost" formaction="?/handling" name="kind" value="DEPARTED" data-testid="sector-depart-button" disabled={departBlocked || busy}>Catat Keberangkatan Personel</button>
 					{#if standbyBlocked}<span class="blocked" data-testid="standby-blocked">{standbyBlocked}</span>{/if}
+				</div>
+			</form>
+		</section>
+	{/if}
+
+	{#if isOfficer}
+		<section class="card actions" data-testid="officer-actions" aria-label="Tindakan Petugas Instansi">
+			<form method="POST" action="?/handling" use:enhance={submitting} class="stack">
+				<label for="handling-note">Catatan <small class="muted">(opsional)</small></label>
+				<textarea id="handling-note" name="note" rows="2" maxlength="500" disabled={!handlingOpen}></textarea>
+				<div class="buttons">
+					<button type="submit" name="kind" value="CONFIRMED" class="primary" data-testid="confirm-dispatch-button"
+						disabled={!handlingOpen || !r.myDispatch || r.myDispatch.confirmed || busy}>{r.myDispatch?.confirmed ? 'Tugas sudah dikonfirmasi' : 'Konfirmasi Terima Tugas'}</button>
+					<button type="submit" name="kind" value="DEPARTED" class="ghost" data-testid="depart-button" disabled={!handlingOpen || busy}>Catat Keberangkatan</button>
+					<button type="submit" name="kind" value="IN_PROGRESS" class="primary" data-testid="start-button" disabled={r.status !== 'ASSIGNED' || busy}>Mulai Penanganan</button>
 				</div>
 			</form>
 		</section>

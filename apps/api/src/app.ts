@@ -6,6 +6,7 @@ import { dashboardRoutes } from "./routes/dashboard";
 import { notificationRoutes } from "./routes/notifications";
 import { reportRoutes } from "./routes/reports";
 import { dispatchRoutes } from "./routes/dispatch";
+import { handlingRoutes } from "./routes/handling";
 import { standbyRoutes } from "./routes/standby";
 import { verificationRoutes } from "./routes/verification";
 
@@ -36,5 +37,6 @@ export function createApp() {
     .use(dashboardRoutes)
     .use(verificationRoutes)
     .use(standbyRoutes)
-    .use(dispatchRoutes);
+    .use(dispatchRoutes)
+    .use(handlingRoutes);
 }

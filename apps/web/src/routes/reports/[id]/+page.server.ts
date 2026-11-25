@@ -52,6 +52,14 @@ export const actions: Actions = {
 		const agencyIds = form.getAll('agencyIds').map(String);
 		return act(locals, 'dispatch', `/api/reports/${params.id}/dispatches`, { agencyIds, note: String(form.get('note') ?? '') });
 	},
+	// UC-11 langkah 2–5 dan 4a
+	handling: async ({ locals, params, request }) => {
+		const form = await request.formData();
+		const kind = String(form.get('kind') ?? '');
+		const note = String(form.get('note') ?? '');
+		const json = kind === 'IN_PROGRESS' ? { nextStatus: 'IN_PROGRESS', note } : { activity: kind, note };
+		return act(locals, 'handling', `/api/reports/${params.id}/status`, json);
+	},
 	// UC-09 langkah 2–4
 	standby: async ({ locals, params, request }) => {
 		const form = await request.formData();

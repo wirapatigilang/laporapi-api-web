@@ -1,0 +1,33 @@
+openapi: 3.1.0
+info: { title: Lapor Api — UC-11 Memperbarui Status Penanganan, version: 0.10.0 }
+paths:
+  /api/reports/{id}/status:
+    post:
+      summary: Status berikutnya atau kegiatan penanganan — Petugas Instansi (CONFIRMED, DEPARTED, IN_PROGRESS) dan Operator Polsek (DEPARTED)
+      security: [{ bearer: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Tepat satu dari nextStatus atau activity
+              properties:
+                nextStatus: { type: string, enum: [IN_PROGRESS, RESOLVED, ASSIGNED, VERIFIED, REJECTED, RECEIVED] }
+                activity: { type: string, enum: [CONFIRMED, DEPARTED] }
+                note: { type: string, maxLength: 500 }
+      responses:
+        "200":
+          description: Berhasil
+          content:
+            application/json:
+              example: { message: Penugasan dikonfirmasi, report: { id: "…", status: ASSIGNED, statusLabel: Petugas Ditugaskan } }
+        "403": { description: "Peran lain; Petugas Ditugaskan oleh selain Admin; Laporan tidak diteruskan ke Instansinya / di luar wilayah Polsek" }
+        "404": { description: Laporan tidak ditemukan }
+        "409": { description: "Melompat/mundur (INVALID_TRANSITION); status akhir (FINAL_STATUS); sudah dikonfirmasi (ALREADY_CONFIRMED)" }
+        "422": { description: "nextStatus/activity kosong, keduanya diisi, atau tidak dikenal" }
+  /api/reports/{id}:
+    get:
+      summary: (perubahan tambahan) Petugas Instansi — myDispatch { id, confirmed, confirmedAt }
+components:
+  securitySchemes: { bearer: { type: http, scheme: bearer } }
