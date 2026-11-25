@@ -82,7 +82,7 @@ describe("UC-07 memverifikasi laporan", () => {
     expect(await page.locator("path.marker-photo").count()).toBe(1);
     expect(await page.locator("path.map-marker").count()).toBeGreaterThanOrEqual(2);
     expect(await page.getByTestId("verify-button").isEnabled()).toBe(true);
-    // Tombol Tolak diuji ulang pada iterasi 6 (UC-08).
+    expect(await page.getByTestId("reject-button").isEnabled()).toBe(true); // ditambah pada iterasi 6 (UC-08)
   });
 
   test("UJ-07.04 titik panas tiruan di sekitar laporan → petunjuk tampil, status tidak berubah sebelum Admin memutuskan", async () => {
@@ -130,9 +130,9 @@ describe("UC-07 memverifikasi laporan", () => {
 
   test("UJ-07.07 verifikasi laporan berstatus Laporan Ditolak → 409, status tetap", async () => {
     const report = await submitReport(citizen);
-    // Kondisi awal: Laporan sudah ditolak (UC-08 dibangun pada iterasi 6).
-    await db`UPDATE reports SET current_status = 'REJECTED' WHERE id = ${report.id}`;
-    await db`INSERT INTO status_histories (report_id, type, status, actor_id) VALUES (${report.id}, 'STATUS', 'REJECTED', ${adminId})`;
+    // Kondisi awal: Laporan ditolak lewat UC-08 (iterasi 6; sebelumnya disiapkan langsung di basis data uji).
+    const [reason] = await db`SELECT id FROM rejection_reasons WHERE code = 'PRANK'`;
+    expect((await api("POST", `/api/reports/${report.id}/reject`, { reasonId: reason.id }, adminToken)).status).toBe(200);
     const res = await api("POST", `/api/reports/${report.id}/verify`, {}, adminToken);
     expect(res.status).toBe(409);
     expect(res.body.error.message).toContain("Laporan sudah diproses oleh");

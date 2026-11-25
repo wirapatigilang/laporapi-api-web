@@ -14,7 +14,7 @@
 	const canDecide = $derived(isAdmin && r.status === 'RECEIVED');
 	const canDispatch = $derived(isAdmin && ['VERIFIED', 'ASSIGNED', 'IN_PROGRESS'].includes(r.status));
 
-	let confirming = $state<null | 'verify'>(null);
+	let confirming = $state<null | 'verify' | 'reject'>(null);
 	let showPhone = $state(false);
 	let showFieldCheck = $state(false);
 	let busy = $state(false);
@@ -22,9 +22,10 @@
 	/** Setelah tindakan: tutup dialog dan muat ulang data halaman. */
 	const submitting = () => {
 		busy = true;
-		return async ({ update }: { update: (o?: { reset?: boolean }) => Promise<void> }) => {
+		return async ({ result, update }: { result: { type: string }; update: (o?: { reset?: boolean }) => Promise<void> }) => {
 			busy = false;
-			confirming = null;
+			// Dialog tetap terbuka bila isian ditolak (422) agar pesan tampil di dalamnya.
+			if (!(result.type === 'failure' && confirming === 'reject' && (result as any).status === 422)) confirming = null;
 			await update({ reset: false });
 		};
 	};
@@ -58,7 +59,7 @@
 		{#if r.isDuplicate}<span class="note" data-testid="duplicate-of">Tergabung dengan laporan <a href={`/reports/${r.primaryReport.id}`}>{r.primaryReport.reportNumber}</a></span>{/if}
 	</div>
 
-	{#if form?.message}
+	{#if form?.message && !(confirming === 'reject' && form.action === 'reject')}
 		<p class={form.success ? 'result ok' : 'result err'} role={form.success ? 'status' : 'alert'} data-testid="action-result" data-action={form.action}>{form.message}</p>
 	{/if}
 
@@ -66,6 +67,7 @@
 		<section class="card actions" data-testid="admin-actions" aria-label="Tindakan Admin Polres">
 			<div class="buttons">
 				<button type="button" class="primary" data-testid="verify-button" disabled={!canDecide || busy} onclick={() => (confirming = 'verify')}>Verifikasi</button>
+				<button type="button" class="danger" data-testid="reject-button" disabled={!canDecide || busy} onclick={() => (confirming = 'reject')}>Tolak</button>
 				<button type="button" class="ghost" data-testid="contact-button" onclick={() => (showPhone = !showPhone)}>Hubungi Warga</button>
 				<button type="button" class="ghost" data-testid="field-check-button" disabled={!canDecide} onclick={() => (showFieldCheck = !showFieldCheck)}>Minta cek lapangan</button>
 				<button type="button" class="primary" data-testid="dispatch-button" disabled={!canDispatch}>Teruskan ke Instansi</button>
@@ -83,6 +85,33 @@
 				</form>
 			{/if}
 		</section>
+	{/if}
+
+	{#if confirming === 'reject'}
+		{@const fields = form?.action === 'reject' ? (form?.fields ?? {}) : {}}
+		{@const values = form?.action === 'reject' ? ((form as any)?.values ?? {}) : {}}
+		<div class="backdrop" role="presentation">
+			<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="reject-title" data-testid="reject-dialog">
+				<h2 id="reject-title">Tolak laporan {r.reportNumber}</h2>
+				<form method="POST" action="?/reject" use:enhance={submitting} class="stack">
+					<fieldset class="reasons">
+						<legend>Alasan penolakan</legend>
+						{#each data.rejectionReasons as reason}
+							<label class="radio"><input type="radio" name="reasonId" value={reason.id} checked={values.reasonId === reason.id} data-testid="reason-option" />{reason.label}</label>
+						{/each}
+					</fieldset>
+					{#if fields.reasonId}<small class="field-error" data-testid="reason-error">{fields.reasonId}</small>{/if}
+					<label for="reject-note">Catatan tambahan <small class="muted">(wajib untuk alasan Lainnya)</small></label>
+					<textarea id="reject-note" name="note" rows="3" maxlength="500">{values.note ?? ''}</textarea>
+					{#if fields.note}<small class="field-error" data-testid="reject-note-error">{fields.note}</small>{/if}
+					{#if r.duplicates.length}<p class="small muted">{r.duplicates.length} laporan ganda ikut ditolak dengan alasan yang sama.</p>{/if}
+					<div class="buttons end">
+						<button type="button" class="ghost" data-testid="reject-cancel" onclick={() => (confirming = null)}>Batal</button>
+						<button type="submit" class="primary" data-testid="reject-submit" disabled={busy}>Kirim Penolakan</button>
+					</div>
+				</form>
+			</div>
+		</div>
 	{/if}
 
 	{#if confirming === 'verify'}
@@ -118,6 +147,9 @@
 					{/if}
 				</dd>
 				<dt>Keterangan</dt><dd data-testid="description">{r.description ?? '–'}</dd>
+				{#if r.rejection}
+					<dt>Alasan penolakan</dt><dd data-testid="rejection-reason">{r.rejection.reason}{r.rejection.note ? `: ${r.rejection.note}` : ''}</dd>
+				{/if}
 			</dl>
 		</section>
 
@@ -218,8 +250,11 @@
 	button.danger { background: #fff; color: #c92a2a; border-color: #ffc9c9; }
 	button:disabled { opacity: 0.45; cursor: not-allowed; }
 	.stack { display: grid; gap: 6px; font-size: 14px; }
-	textarea, select, input[type='text'] { font: inherit; font-size: 14px; padding: 8px; border: 1px solid #dccfc8; border-radius: 8px; background: #fffdfc; }
+	textarea { font: inherit; font-size: 14px; padding: 8px; border: 1px solid #dccfc8; border-radius: 8px; background: #fffdfc; }
 	.field-error { color: #c92a2a; }
+	.reasons { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; }
+	.reasons legend { font-weight: 600; margin-bottom: 4px; }
+	.radio { display: flex; gap: 8px; align-items: center; }
 	.contact { margin: 0; font-size: 14px; }
 	.result { border-radius: 8px; padding: 8px 12px; font-size: 14px; }
 	.result.ok { background: #ebfbee; color: #2b8a3e; }

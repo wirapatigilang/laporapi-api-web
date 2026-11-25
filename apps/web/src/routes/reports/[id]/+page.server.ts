@@ -7,7 +7,12 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 	const res = await callApi('GET', `/api/reports/${params.id}`, { token: locals.token });
 	if (res.status === 401) redirect(303, '/login?expired=1');
 	if (res.status !== 200) error(res.status, res.body?.error?.message ?? 'Laporan tidak dapat dibuka');
-	return { user: locals.user, report: res.body.report as any, hotspots: res.body.hotspots as any };
+	let rejectionReasons: { id: string; label: string; requiresNote: boolean }[] = [];
+	if (locals.user.role === 'ADMIN' && res.body.report.status === 'RECEIVED') {
+		const rr = await callApi('GET', '/api/rejection-reasons', { token: locals.token });
+		if (rr.status === 200) rejectionReasons = rr.body.reasons;
+	}
+	return { user: locals.user, report: res.body.report as any, hotspots: res.body.hotspots as any, rejectionReasons };
 };
 
 /** Meneruskan tindakan di Halaman Detail Laporan ke API dan mengembalikan pesan hasil/galat. */
@@ -35,5 +40,14 @@ export const actions: Actions = {
 	fieldCheck: async ({ locals, params, request }) => {
 		const form = await request.formData();
 		return act(locals, 'fieldCheck', `/api/reports/${params.id}/notes`, { note: String(form.get('note') ?? '') });
+	},
+	// UC-08 langkah 3–6
+	reject: async ({ locals, params, request }) => {
+		const form = await request.formData();
+		const reasonId = String(form.get('reasonId') ?? '');
+		return act(locals, 'reject', `/api/reports/${params.id}/reject`, {
+			reasonId: reasonId || null,
+			note: String(form.get('note') ?? '')
+		});
 	}
 };
