@@ -26,3 +26,11 @@ Tanggal: 2026-11-24 · Lingkungan: Bun 1.4.4, ElysiaJS 1.4.32, PostgreSQL 16.15 
 ## Uji ulang 25 November 2026 (aktor Pelapor menjadi Warga, peran `CITIZEN`)
 
 Seluruh uji Black Box dijalankan ulang setelah migrasi `005_rename_reporter_role.sql`: 54 dari 54 lulus (UC-01, UC-02 API dan web, UC-04).
+
+## Uji tambahan 25 November 2026 (alamat Warga)
+
+| Kode | Hasil |
+|---|---|
+| UJ-01.11 alamat diisi → 201 dan tersimpan; 201 karakter → 422 `address` | Lulus |
+
+Seluruh rangkaian dijalankan ulang: 133/133 lulus.

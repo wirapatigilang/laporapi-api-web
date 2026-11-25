@@ -1,0 +1,37 @@
+openapi: 3.1.0
+info: { title: Lapor Api — UC-10 Meneruskan Laporan ke Instansi, version: 0.9.0 }
+paths:
+  /api/agencies:
+    get:
+      summary: Daftar Instansi — Admin Polres
+      security: [{ bearer: [] }]
+      responses:
+        "200": { description: "{ agencies: [{ id, name, type }] }" }
+        "403": { description: Bukan Admin Polres }
+  /api/reports/{id}/dispatches:
+    post:
+      summary: Meneruskan Kejadian ke satu atau lebih Instansi — Admin Polres
+      security: [{ bearer: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, required: [agencyIds], properties: { agencyIds: { type: array, items: { type: string, format: uuid }, minItems: 1 }, note: { type: string, maxLength: 500 } } }
+      responses:
+        "201":
+          description: Tercatat
+          content:
+            application/json:
+              example: { message: "Laporan diteruskan ke BPBD Kabupaten Sekadau", report: { id: "…", status: ASSIGNED, statusLabel: Petugas Ditugaskan }, addedAgencies: [BPBD Kabupaten Sekadau], skippedAgencies: [], dispatches: [{ id: "…", agency: { id: "…", name: BPBD Kabupaten Sekadau }, dispatchedAt: "…", dispatchedBy: Admin Polres Sekadau, note: null, confirmedAt: null, confirmedBy: null, state: WAITING, stateLabel: menunggu konfirmasi }] }
+        "403": { description: Bukan Admin Polres }
+        "404": { description: Laporan tidak ditemukan }
+        "409": { description: "Status bukan Diverifikasi/Ditugaskan/Berlangsung (INVALID_STATUS), atau semua Instansi sudah diteruskan (ALREADY_DISPATCHED)" }
+        "422": { description: "fields.agencyIds 'Pilih minimal satu instansi' / 'Instansi tidak dikenal'" }
+  /api/incidents:
+    get:
+      summary: (perubahan tambahan) isOverdue untuk Admin; Petugas Instansi melihat Kejadian yang diteruskan ke Instansinya
+  /api/reports/{id}:
+    get:
+      summary: (perubahan tambahan) petugas — dispatches[], isOverdue; Warga — handlingAgencies [{ name, confirmed }]
+components:
+  securitySchemes: { bearer: { type: http, scheme: bearer } }

@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 import { jwt } from "@elysiajs/jwt";
 import { config } from "../config";
+import { sql } from "../db/client";
 import { ApiError } from "../lib/errors";
 import type { Role } from "../repositories/user-repository";
 
@@ -24,6 +25,9 @@ export const authContext = new Elysia({ name: "auth-context" })
       const expired = isExpired(token);
       return { authUser: null, authError: expired ? ("TOKEN_EXPIRED" as const) : ("INVALID_TOKEN" as const) };
     }
+    // UC-03 2b: akun yang dinonaktifkan tidak dapat memakai token lamanya.
+    const [account] = await sql`SELECT is_active AS "isActive" FROM users WHERE id = ${String(payload.sub)}`;
+    if (!account?.isActive) return { authUser: null, authError: "ACCOUNT_INACTIVE" as const };
     return { authUser: { id: String(payload.sub), role: payload.role as Role }, authError: null };
   });
 
@@ -40,6 +44,7 @@ function isExpired(token: string): boolean {
 export function requireRole(authUser: AuthUser | null, authError: string | null, ...roles: Role[]): AuthUser {
   if (!authUser) {
     if (authError === "TOKEN_EXPIRED") throw new ApiError(401, "TOKEN_EXPIRED", "Sesi berakhir, silakan masuk kembali");
+    if (authError === "ACCOUNT_INACTIVE") throw new ApiError(401, "ACCOUNT_INACTIVE", "Akun Anda tidak aktif, hubungi Admin Polres");
     throw new ApiError(401, "UNAUTHENTICATED", "Silakan masuk terlebih dahulu");
   }
   if (roles.length > 0 && !roles.includes(authUser.role)) {

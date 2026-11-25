@@ -1,0 +1,46 @@
+@startuml
+left to right direction
+title Robustness Diagram UC-08 Menolak Laporan
+actor "Admin Polres" as adm
+boundary "Halaman Detail Laporan" as bDetail
+boundary "Dialog Tolak Laporan" as bTolak
+control "Ambil pilihan Alasan Penolakan" as cAlasan
+control "Tutup dialog tanpa perubahan [3c]" as cBatal
+control "Periksa alasan dipilih; catatan wajib bila 'Lainnya' [3a, 3b]" as cWajib
+control "Minta alasan atau catatan diisi" as cErr
+control "Periksa status masih Laporan Diterima" as cStatus
+control "Ubah status Laporan dan laporan ganda menjadi Laporan Ditolak, simpan alasan [4a]" as cUbah
+control "Tutup tiket Kejadian" as cTutup
+control "Catat Riwayat Status" as cRiwayat
+control "Kirim Notifikasi berisi alasan ke Warga dan ke Operator Polsek" as cNotif
+control "Tampilkan status baru" as cTampil
+entity "RejectionReason (Alasan Penolakan)" as eAlasan
+entity "Incident (Kejadian)" as eKejadian
+entity "Report (Laporan)" as eLaporan
+entity "StatusHistory (Riwayat Status)" as eRiwayat
+entity "Notification (Notifikasi)" as eNotif
+boundary "Layanan Push (mis. FCM)" as bPush
+adm --> bDetail
+adm --> bTolak
+bDetail --> cAlasan
+cAlasan --> eAlasan
+cAlasan --> bTolak
+bTolak --> cBatal
+cBatal --> bDetail
+bTolak --> cWajib
+cWajib --> cErr
+cErr --> bTolak
+cWajib --> cStatus
+cStatus --> eLaporan : cek
+cStatus --> cUbah
+cUbah --> eLaporan
+cUbah --> cTutup
+cTutup --> eKejadian
+cUbah --> cRiwayat
+cRiwayat --> eRiwayat
+cUbah --> cNotif
+cNotif --> eNotif
+cNotif --> bPush
+cUbah --> cTampil
+cTampil --> bDetail
+@enduml

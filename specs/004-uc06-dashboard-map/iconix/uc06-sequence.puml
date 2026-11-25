@@ -1,0 +1,37 @@
+@startuml
+title Sequence Diagram UC-06 Melihat Daftar dan Peta Laporan
+autonumber
+actor "Admin Polres / Operator Polsek" as adm
+boundary "DashboardPage (web)" as dsb
+control "ReportService" as lap
+entity "Incident" as kjd
+entity "Report" as lpr
+control "FirmsClient" as firms
+boundary "NASA FIRMS API" as nasa
+note over adm : 1–2. Pengguna membuka Dasbor Laporan; sistem menampilkan daftar dan peta.
+adm -> dsb : buka Dasbor Laporan
+dsb -> lap : GET /api/incidents?status&sector&from&to
+lap -> lap : scopeFor(session): operator sees own sector only [1a]
+lap -> kjd : list(filter, scope)
+kjd -> lpr : primary report + duplicate count
+lap --> dsb : incidents[] + overdue flag
+dsb -> dsb : render map markers (Leaflet/OSM) by status
+alt 2b. hasil kosong
+dsb --> adm : 'Tidak ada laporan'
+end
+note over adm : 2a. Laporan baru masuk saat dasbor terbuka.
+dsb -> lap : GET /api/stream (SSE, kept open)
+lap --> dsb : event 'report-created'
+note over adm : 3. Saringan diterapkan (permintaan yang sama dengan parameter baru).
+note over adm : 4. Pengguna memilih Laporan; sistem membuka Halaman Detail Laporan.
+adm -> dsb : pilih Laporan
+dsb -> lap : GET /api/reports/:id
+lap -> lpr : detail + reporter + history + duplicates
+lap -> firms : fetchHotspots(bbox around location, 1 day)
+firms -> nasa : GET area/csv (MODIS, VIIRS)
+nasa --> firms : hotspots
+firms --> lap : Hotspot[]
+lap -> lap : nearest distance (haversine)
+lap --> dsb : detail + EXIF/mismatch + hotspot hint
+note across : Nomor HP Warga ditampilkan lengkap untuk Operator Polsek [4a]. Bila FIRMS tidak dapat dihubungi, detail tetap tampil tanpa petunjuk titik panas.
+@enduml

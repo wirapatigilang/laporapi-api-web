@@ -1,0 +1,37 @@
+@startuml
+left to right direction
+title Robustness Diagram UC-09 Menyiagakan Personel Polsek
+actor "Operator Polsek" as ops
+boundary "Daftar Notifikasi (web)" as bNotif
+boundary "Halaman Detail Laporan" as bDetail
+control "Buka Detail Laporan dari Notifikasi" as cBuka
+control "Periksa Laporan berada di wilayah Polsek [2b]" as cWilayah
+control "Tolak: tidak diizinkan" as cErrIzin
+control "Periksa Laporan belum ditolak [2a]" as cTolak
+control "Tampilkan 'Laporan sudah ditolak', nonaktifkan tombol" as cErrTolak
+control "Catat kegiatan 'Personel Polsek disiagakan' tanpa ubah status" as cCatat
+control "Tampilkan tanda 'Polsek sudah siaga'" as cTanda
+control "Siarkan tanda siaga ke Dasbor Admin" as cSiar
+entity "Notification (Notifikasi)" as eNotif
+entity "Report (Laporan)" as eLaporan
+entity "StatusHistory (Riwayat Status)" as eRiwayat
+boundary "Dasbor Laporan (Admin Polres)" as bDasbor
+ops --> bNotif
+ops --> bDetail
+bNotif --> cBuka
+cBuka --> eNotif
+cBuka --> bDetail
+bDetail --> cWilayah
+cWilayah --> eLaporan : cek polsek
+cWilayah --> cErrIzin
+cErrIzin --> bDetail
+cWilayah --> cTolak
+cTolak --> cErrTolak
+cErrTolak --> bDetail
+cTolak --> cCatat
+cCatat --> eRiwayat
+cCatat --> cTanda
+cTanda --> bDetail
+cCatat --> cSiar
+cSiar --> bDasbor
+@enduml

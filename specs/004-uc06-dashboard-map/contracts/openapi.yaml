@@ -1,0 +1,47 @@
+openapi: 3.1.0
+info: { title: Lapor Api — UC-06 Melihat Daftar dan Peta Laporan, version: 0.4.0 }
+paths:
+  /api/incidents:
+    get:
+      summary: Daftar Kejadian sesuai cakupan peran (Admin semua, Operator Polsek-nya, Petugas Instansi yang diteruskan)
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/ReportStatus" } }
+        - { name: districtId, in: query, schema: { type: string, format: uuid } }
+        - { name: policeSectorId, in: query, schema: { type: string, format: uuid } }
+        - { name: from, in: query, schema: { type: string, format: date }, description: "Tanggal awal (WIB)" }
+        - { name: to, in: query, schema: { type: string, format: date }, description: "Tanggal akhir (WIB)" }
+      responses:
+        "200": { description: "{ incidents: IncidentItem[] }" }
+        "401": { description: Belum masuk / token kedaluwarsa }
+        "403": { description: Warga }
+        "422": { description: Saringan tidak valid (pesan per kolom) }
+  /api/stream:
+    get:
+      summary: Server-Sent Events `report-created` dan `incident-updated` dengan data { incidentId, reportId }
+      security: [{ bearer: [] }]
+      responses: { "200": { description: text/event-stream } }
+  /api/reports/{id}:
+    get:
+      summary: Detail Laporan (Admin; Operator wilayahnya; Petugas Instansi yang diteruskan; Warga pemilik)
+      security: [{ bearer: [] }]
+      responses:
+        "200":
+          description: >
+            { report: { id, reportNumber, status, statusLabel, photoUrl, latitude, longitude, locationSource,
+            deviceCoordinate, gpsAccuracy, photoCoordinate, photoCoordinateNote, hasLocationMismatch,
+            locationMismatchMeters, district, policeSector, reportedAt, receivedAt, description,
+            reporter: { name, phoneNumber|null }, incident, isDuplicate, primaryReport, duplicates[], history[] },
+            hotspots: { available, note, radiusKm, dayRange, count, nearestMeters, hotspots[] } }
+        "403": { description: Di luar cakupan }
+        "404": { description: Tidak ditemukan }
+  /api/reports/{id}/photo:
+    get: { summary: Berkas foto (hak akses sama dengan detail), responses: { "200": { description: image/* }, "403": { description: Di luar cakupan } } }
+  /api/districts:
+    get: { summary: "Kecamatan dan Polsek-nya (pilihan saringan)", responses: { "200": { description: "{ districts[] }" } } }
+  /api/police-sectors:
+    get: { summary: "Daftar Polsek (pilihan saringan)", responses: { "200": { description: "{ policeSectors[] }" } } }
+components:
+  securitySchemes: { bearer: { type: http, scheme: bearer } }
+  schemas:
+    ReportStatus: { type: string, enum: [RECEIVED, VERIFIED, REJECTED, ASSIGNED, IN_PROGRESS, RESOLVED] }

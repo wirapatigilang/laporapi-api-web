@@ -1,0 +1,36 @@
+@startuml
+title Sequence Diagram UC-03 Mengelola Akun Petugas
+autonumber
+actor "Admin Polres" as adm
+boundary "OfficerAccountsPage" as hal
+control "OfficerAccountService" as akun
+entity "User" as png
+entity "PoliceSector / Agency" as rel
+note over adm : 1. Admin membuka Halaman Kelola Akun; sistem menampilkan daftar petugas.
+adm -> hal : buka Halaman Kelola Akun
+hal -> akun : GET /api/officers
+akun -> png : listOfficers()
+akun --> hal : officers[]
+note over adm : 2–3. Admin menekan Tambah Akun, mengisi data, lalu Simpan.
+adm -> hal : isi formulir, tekan Simpan
+hal -> akun : POST /api/officers
+note over adm : 4. Sistem memeriksa kelengkapan, Polsek/Instansi, dan keunikan.
+akun -> akun : validate(data)
+akun -> rel : exists(policeSectorId | agencyId)
+akun -> png : findByPhoneNumber(normalize(phoneNumber))
+alt 4a / 2c. data salah, relasi kosong, atau sudah dipakai
+akun --> hal : 422/409 + pesan per kolom
+else valid
+note over adm : 5. Sistem menyimpan Pengguna dengan kata sandi awal.
+akun -> akun : generateInitialPassword()
+akun -> png : save(role, policeSectorId | agencyId)
+akun --> hal : 201 {user, initialPassword}
+end
+note over adm : 2a. Mengubah akun.
+hal -> akun : PATCH /api/officers/:id
+akun -> png : update(data)
+note over adm : 2b. Menonaktifkan akun setelah konfirmasi.
+hal -> akun : POST /api/officers/:id/deactivate
+akun -> png : deactivate()
+akun --> hal : 200
+@enduml

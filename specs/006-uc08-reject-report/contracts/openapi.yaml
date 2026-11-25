@@ -1,0 +1,38 @@
+openapi: 3.1.0
+info: { title: Lapor Api — UC-08 Menolak Laporan, version: 0.6.0 }
+paths:
+  /api/rejection-reasons:
+    get:
+      summary: Daftar Alasan Penolakan — Admin Polres
+      security: [{ bearer: [] }]
+      responses:
+        "200":
+          description: Berhasil
+          content:
+            application/json:
+              example: { reasons: [{ id: "…", code: PRANK, label: Laporan iseng, requiresNote: false }, { id: "…", code: OTHER, label: Lainnya, requiresNote: true }] }
+        "403": { description: Bukan Admin Polres }
+  /api/reports/{id}/reject:
+    post:
+      summary: Menolak Kejadian milik Laporan dan menutup tiketnya — Admin Polres
+      security: [{ bearer: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, required: [reasonId], properties: { reasonId: { type: string, format: uuid }, note: { type: string, maxLength: 500 } } }
+      responses:
+        "200":
+          description: Berhasil
+          content:
+            application/json:
+              example: { message: Laporan ditolak, report: { id: "…", reportNumber: LA-0020, status: REJECTED, statusLabel: Laporan Ditolak, rejection: { reason: Laporan iseng, note: null } } }
+        "403": { description: Bukan Admin Polres }
+        "404": { description: Laporan tidak ditemukan }
+        "409": { description: "Laporan sudah diproses oleh [nama] pada [waktu]" }
+        "422": { description: "fields.reasonId 'Pilih alasan penolakan' / 'Alasan penolakan tidak dikenal'; fields.note 'Catatan wajib diisi untuk alasan Lainnya'" }
+  /api/reports/{id}:
+    get:
+      summary: (perubahan tambahan) report.rejection = { code, reason, note } untuk Laporan Ditolak, selain itu null
+components:
+  securitySchemes: { bearer: { type: http, scheme: bearer } }

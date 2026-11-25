@@ -1,0 +1,26 @@
+openapi: 3.1.0
+info: { title: Lapor Api — UC-09 Menyiagakan Personel Polsek, version: 0.8.0 }
+paths:
+  /api/reports/{id}/standby:
+    post:
+      summary: Mencatat kegiatan "Personel Polsek disiagakan" tanpa mengubah status — Operator Polsek
+      security: [{ bearer: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, properties: { note: { type: string, maxLength: 500 } } }
+      responses:
+        "201": { description: "{ message: 'Personel Polsek disiagakan', sectorStandby: true }" }
+        "403": { description: Bukan Operator Polsek, atau Laporan di luar wilayah Polsek-nya }
+        "404": { description: Laporan tidak ditemukan }
+        "409": { description: "'Laporan sudah ditolak' (REPORT_REJECTED) atau 'Penanganan sudah selesai' (REPORT_RESOLVED)" }
+        "422": { description: Catatan > 500 karakter }
+  /api/incidents:
+    get:
+      summary: (perubahan tambahan) tiap butir memuat sectorStandby (boolean)
+  /api/reports/{id}:
+    get:
+      summary: (perubahan tambahan) report.sectorStandby = { at, by, note } atau null (petugas)
+components:
+  securitySchemes: { bearer: { type: http, scheme: bearer } }

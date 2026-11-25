@@ -1,0 +1,45 @@
+@startuml
+left to right direction
+title Robustness Diagram UC-06 Melihat Daftar dan Peta Laporan
+actor "Admin Polres" as adm
+actor "Operator Polsek" as ops
+boundary "Dasbor Laporan (daftar + peta Leaflet/OSM)" as bDasbor
+boundary "Halaman Detail Laporan" as bDetail
+control "Tentukan cakupan sesuai peran (Operator: Polsek-nya saja) [1a]" as cPeran
+control "Ambil Kejadian, laporan utama, dan jumlah laporan ganda" as cKejadian
+control "Terapkan saringan status, kecamatan/Polsek, tanggal" as cSaring
+control "Beri warna penanda peta sesuai status" as cWarna
+control "Tampilkan 'Tidak ada laporan' [2b]" as cKosong
+control "Terima siaran Laporan baru, beri penanda 'baru' [2a]" as cSiaran
+control "Ambil detail: foto, koordinat, EXIF + tanda selisih, Warga, laporan ganda, Riwayat Status" as cDetail
+control "Ambil titik panas terdekat dan hitung jaraknya (Haversine)" as cFirms
+boundary "Layanan NASA FIRMS" as bFirms
+entity "Incident (Kejadian)" as eKejadian
+entity "Report (Laporan)" as eLaporan
+entity "StatusHistory (Riwayat Status)" as eRiwayat
+entity "User (Warga)" as ePengguna
+entity "Hotspot (Titik Panas)" as eTitik
+adm --> bDasbor
+ops --> bDasbor
+adm --> bDetail
+ops --> bDetail
+bDasbor --> cPeran
+cPeran --> cKejadian
+cPeran --> cSaring
+cKejadian --> eKejadian
+cKejadian --> eLaporan
+cSaring --> eLaporan
+cKejadian --> cWarna
+cWarna --> bDasbor
+cSaring --> cKosong
+cKosong --> bDasbor
+cSiaran --> bDasbor
+bDetail --> cDetail
+cDetail --> eLaporan
+cDetail --> eRiwayat
+cDetail --> ePengguna
+cDetail --> cFirms
+cFirms --> bFirms
+cFirms --> eTitik
+cDetail --> bDetail
+@enduml

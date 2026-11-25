@@ -16,6 +16,7 @@ export interface RegistrationInput {
   name: string;
   phoneNumber: string;
   password: string;
+  address: string | null;
 }
 
 const asText = (v: unknown) => (typeof v === "string" ? v : "");
@@ -27,6 +28,7 @@ export const AuthService = {
     const name = asText(body.name).trim();
     const rawPhone = asText(body.phoneNumber).trim();
     const password = asText(body.password);
+    const address = asText(body.address).trim();
 
     if (!name) errors.name = "Nama wajib diisi";
     else if (name.length < 2 || name.length > 100) errors.name = "Nama harus 2–100 karakter";
@@ -43,7 +45,11 @@ export const AuthService = {
     else if (password.length < 8) errors.password = "Kata sandi minimal 8 karakter";
     else if (password.length > 200) errors.password = "Kata sandi maksimal 200 karakter";
 
-    return { input: { name, phoneNumber, password }, errors };
+    // Alamat opsional (requirement tim mobile v0.5); layar Android boleh mewajibkannya.
+    if (body.address !== undefined && body.address !== null && typeof body.address !== "string") errors.address = "Alamat harus berupa teks";
+    else if (address.length > 200) errors.address = "Alamat maksimal 200 karakter";
+
+    return { input: { name, phoneNumber, password, address: address || null }, errors };
   },
 
   hashPassword(password: string): Promise<string> {
@@ -61,6 +67,7 @@ export const AuthService = {
     const user = await UserRepository.create({
       name: input.name,
       phoneNumber: input.phoneNumber,
+      address: input.address,
       passwordHash: await this.hashPassword(input.password),
       role: "CITIZEN",
     });

@@ -21,6 +21,33 @@ export const NotificationService = {
     return recipients.length;
   },
 
+  /** NotificationService.send: satu Notifikasi per penerima (penerima ganda diabaikan). */
+  async send(tx: SQL, recipientIds: string[], title: string, body: string, reportId: string | null = null) {
+    const unique = [...new Set(recipientIds)];
+    for (const id of unique) {
+      await tx`INSERT INTO notifications (recipient_id, report_id, title, body) VALUES (${id}, ${reportId}, ${title}, ${body})`;
+    }
+    return unique.length;
+  },
+
+  async admins(tx: SQL): Promise<string[]> {
+    return (await tx`SELECT id FROM users WHERE is_active AND role = 'ADMIN'`).map((r: { id: string }) => r.id);
+  },
+
+  async sectorOperators(tx: SQL, policeSectorId: string | null): Promise<string[]> {
+    if (!policeSectorId) return [];
+    return (await tx`SELECT id FROM users WHERE is_active AND role = 'SECTOR_OPERATOR' AND police_sector_id = ${policeSectorId}`).map(
+      (r: { id: string }) => r.id,
+    );
+  },
+
+  /** UC-05 langkah 4: Warga membuka Notifikasi (ditandai sudah dibaca) lalu menuju Detail Laporan. */
+  async markRead(userId: string, id: string) {
+    const rows = await sql`UPDATE notifications SET is_read = true WHERE id = ${id} AND recipient_id = ${userId}
+      RETURNING id, report_id AS "reportId", title, body, is_read AS "isRead", created_at AS "createdAt"`;
+    return rows[0] ?? null;
+  },
+
   async listFor(userId: string) {
     return sql`SELECT id, report_id AS "reportId", title, body, is_read AS "isRead", created_at AS "createdAt"
       FROM notifications WHERE recipient_id = ${userId} ORDER BY created_at DESC LIMIT 100`;

@@ -2,8 +2,14 @@ import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
 import { ApiError } from "./lib/errors";
 import { authRoutes } from "./routes/auth";
+import { dashboardRoutes } from "./routes/dashboard";
 import { notificationRoutes } from "./routes/notifications";
 import { reportRoutes } from "./routes/reports";
+import { dispatchRoutes } from "./routes/dispatch";
+import { handlingRoutes } from "./routes/handling";
+import { officerRoutes } from "./routes/officers";
+import { standbyRoutes } from "./routes/standby";
+import { verificationRoutes } from "./routes/verification";
 
 export function createApp() {
   return new Elysia()
@@ -28,5 +34,11 @@ export function createApp() {
     .get("/api/health", () => ({ status: "ok" }))
     .use(authRoutes)
     .use(reportRoutes)
-    .use(notificationRoutes);
+    .use(notificationRoutes)
+    .use(dashboardRoutes)
+    .use(verificationRoutes)
+    .use(standbyRoutes)
+    .use(dispatchRoutes)
+    .use(handlingRoutes)
+    .use(officerRoutes);
 }

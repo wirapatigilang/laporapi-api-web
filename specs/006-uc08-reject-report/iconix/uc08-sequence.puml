@@ -1,0 +1,34 @@
+@startuml
+title Sequence Diagram UC-08 Menolak Laporan
+autonumber
+actor "Admin Polres" as adm
+boundary "RejectReportDialog" as dlg
+control "VerificationService" as ver
+entity "RejectionReason" as als
+entity "Report" as lpr
+entity "Incident" as kjd
+entity "StatusHistory" as rws
+control "NotificationService" as ntf
+note over adm : 1–2. Admin menekan Tolak; sistem membuka dialog berisi pilihan alasan.
+adm -> dlg : tekan Tolak
+dlg -> ver : GET /api/rejection-reasons
+ver -> als : list()
+ver --> dlg : reasons[]
+note over adm : 3. Admin memilih alasan, boleh menambah catatan, lalu Kirim Penolakan.
+adm -> dlg : pilih alasan, Kirim Penolakan
+dlg -> ver : POST /api/reports/:id/reject {reasonId, note?}
+alt 3a / 3b. alasan kosong, atau 'Lainnya' tanpa catatan
+ver --> dlg : 422 minta alasan/catatan
+else valid
+note over adm : 4. Sistem mengubah status (juga laporan ganda), menyimpan alasan, mencatat riwayat, menutup tiket.
+ver -> lpr : changeStatusIf(RECEIVED → REJECTED), save reason
+ver -> kjd : applyStatus(REJECTED) [4a]
+ver -> kjd : close()
+ver -> rws : record(STATUS, REJECTED, admin)
+note over adm : 5. Notifikasi berisi alasan ke Warga dan ke Operator Polsek.
+ver -> ntf : send(all reporters, reason) + sector operators
+ver --> dlg : 200 updated report
+end
+note over adm : 6. Halaman menampilkan status Laporan Ditolak. 3c: Batal menutup dialog tanpa permintaan ke API.
+dlg --> adm : tutup dialog, tampilkan status
+@enduml

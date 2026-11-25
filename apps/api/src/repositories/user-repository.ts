@@ -6,6 +6,7 @@ export interface User {
   id: string;
   name: string;
   phoneNumber: string;
+  address: string | null;
   passwordHash: string;
   role: Role;
   isActive: boolean;
@@ -18,6 +19,7 @@ export interface SessionUser {
   id: string;
   name: string;
   phoneNumber: string;
+  address: string | null;
   role: Role;
   policeSector: { id: string; name: string } | null;
   agency: { id: string; name: string } | null;
@@ -25,7 +27,7 @@ export interface SessionUser {
 
 export type PublicUser = Omit<User, "passwordHash">;
 
-const columns = sql`id, name, phone_number AS "phoneNumber", password_hash AS "passwordHash",
+const columns = sql`id, name, phone_number AS "phoneNumber", address, password_hash AS "passwordHash",
   role, is_active AS "isActive", police_sector_id AS "policeSectorId", agency_id AS "agencyId",
   created_at AS "createdAt"`;
 
@@ -36,7 +38,7 @@ export const UserRepository = {
   },
 
   async findSessionUser(id: string): Promise<SessionUser | null> {
-    const rows = await sql`SELECT u.id, u.name, u.phone_number AS "phoneNumber", u.role,
+    const rows = await sql`SELECT u.id, u.name, u.phone_number AS "phoneNumber", u.address, u.role,
         CASE WHEN ps.id IS NULL THEN NULL ELSE json_build_object('id', ps.id, 'name', ps.name) END AS "policeSector",
         CASE WHEN ag.id IS NULL THEN NULL ELSE json_build_object('id', ag.id, 'name', ag.name) END AS "agency"
       FROM users u
@@ -46,9 +48,9 @@ export const UserRepository = {
     return rows[0] ?? null;
   },
 
-  async create(input: Pick<User, "name" | "phoneNumber" | "passwordHash" | "role">): Promise<User> {
-    const [row] = await sql`INSERT INTO users (name, phone_number, password_hash, role)
-      VALUES (${input.name}, ${input.phoneNumber}, ${input.passwordHash}, ${input.role})
+  async create(input: Pick<User, "name" | "phoneNumber" | "passwordHash" | "role"> & { address?: string | null }): Promise<User> {
+    const [row] = await sql`INSERT INTO users (name, phone_number, address, password_hash, role)
+      VALUES (${input.name}, ${input.phoneNumber}, ${input.address ?? null}, ${input.passwordHash}, ${input.role})
       RETURNING ${columns}`;
     return row;
   },

@@ -95,8 +95,8 @@ export const IncidentRepository = {
 };
 
 export const StatusHistoryRepository = {
-  async record(tx: SQL, entry: { reportId: string; type: "STATUS" | "ACTIVITY"; status: ReportStatus | null; actorId: string | null; note?: string | null }) {
-    await tx`INSERT INTO status_histories (report_id, type, status, actor_id, note)
-      VALUES (${entry.reportId}, ${entry.type}, ${entry.status}, ${entry.actorId}, ${entry.note ?? null})`;
+  async record(tx: SQL, entry: { reportId: string; type: "STATUS" | "ACTIVITY"; status: ReportStatus | null; actorId: string | null; note?: string | null; activity?: string | null }) {
+    await tx`INSERT INTO status_histories (report_id, type, status, actor_id, note, activity)
+      VALUES (${entry.reportId}, ${entry.type}, ${entry.status}, ${entry.actorId}, ${entry.note ?? null}, ${entry.activity ?? null})`;
   },
 };

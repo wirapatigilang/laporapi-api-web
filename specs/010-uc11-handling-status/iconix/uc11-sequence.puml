@@ -1,0 +1,39 @@
+@startuml
+title Sequence Diagram UC-11 Memperbarui Status Penanganan
+autonumber
+actor "Petugas Instansi / Operator Polsek" as pet
+boundary "ReportDetailPage" as det
+control "HandlingService" as tgn
+entity "Dispatch" as ptr
+entity "Report" as lpr
+entity "Incident" as kjd
+entity "StatusHistory" as rws
+control "NotificationService" as ntf
+note over pet : 1. Petugas memilih Laporan yang diteruskan ke Instansi-nya; halaman menampilkan tombol status berikutnya.
+note over pet : 2, 4, 4a. Konfirmasi Terima Tugas dan Catat Keberangkatan dicatat sebagai kegiatan; 5. Mulai Penanganan memajukan status.
+pet -> det : tekan tombol status
+det -> tgn : POST /api/reports/:id/status {nextStatus | activity}
+tgn -> ptr : isDispatchedTo(agency) / sector check
+alt 1a. tidak berhak / 2b. nextStatus = ASSIGNED
+tgn --> det : 403 forbidden (Ditugaskan hanya oleh Admin Polres)
+end
+tgn -> lpr : currentStatus.canTransitionTo(nextStatus)
+alt melompat atau mundur
+tgn --> det : 409 status hanya boleh maju satu tahap
+else 2, 2a. konfirmasi / 4, 4a. catat keberangkatan
+opt activity = CONFIRMED
+tgn -> ptr : confirm(now)
+end
+tgn -> rws : record(ACTIVITY, confirmed/departed)
+tgn -> ntf : send(admins + reporter, officer name)
+tgn --> det : 200 (status unchanged)
+else boleh maju
+note over pet : 5. Sistem mengubah status (Penanganan Berlangsung) dan mencatat Riwayat Status.
+tgn -> kjd : applyStatus(nextStatus, officer)
+tgn -> rws : record(STATUS, nextStatus, officer)
+note over pet : 6. Notifikasi ke Warga dan Admin Polres, memuat nama petugas.
+tgn -> ntf : send(reporters + admins, status, officer name)
+tgn --> det : 200 updated report
+end
+det --> pet : tampilkan status dan tombol berikutnya
+@enduml

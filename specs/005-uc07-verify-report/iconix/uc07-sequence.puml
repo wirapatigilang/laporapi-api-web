@@ -1,0 +1,33 @@
+@startuml
+title Sequence Diagram UC-07 Memverifikasi Laporan
+autonumber
+actor "Admin Polres" as adm
+boundary "ReportDetailPage" as det
+control "VerificationService" as ver
+entity "Report" as lpr
+entity "Incident" as kjd
+entity "StatusHistory" as rws
+control "NotificationService" as ntf
+note over adm : 1. Admin memeriksa foto, peta (titik GPS, titik foto, jarak), waktu, keterangan, dan petunjuk titik panas (hasil UC-06).
+note over adm : 2–3. Admin menekan Verifikasi dan menyetujui konfirmasi.
+adm -> det : tekan Verifikasi, setujui
+det -> ver : POST /api/reports/:id/verify
+note over adm : 4. Sistem mengubah status Laporan dan laporan ganda, mencatat Riwayat Status.
+ver -> lpr : changeStatusIf(RECEIVED → VERIFIED) in transaction
+alt 4a. status sudah bukan RECEIVED
+ver --> det : 409 'sudah diproses oleh [nama] pada [waktu]'
+else berhasil
+ver -> kjd : applyStatus(VERIFIED, admin)
+ver -> rws : record(STATUS, VERIFIED, admin)
+note over adm : 5. Notifikasi ke Warga (termasuk warga pengirim laporan ganda) dan Operator Polsek.
+ver -> ntf : send(all reporters + sector operators)
+note over adm : 6. Halaman menampilkan status baru dan tombol Teruskan ke Instansi.
+ver --> det : 200 updated report
+end
+det --> adm : status Laporan Diverifikasi
+note over adm : 1a. Bukti belum cukup: Admin menghubungi Warga atau meminta cek lapangan.
+det -> ver : POST /api/reports/:id/notes {note}
+ver -> rws : record(ACTIVITY, note, admin)
+ver -> ntf : send(sector operators, 'Mohon cek lapangan')
+ver --> det : 201
+@enduml

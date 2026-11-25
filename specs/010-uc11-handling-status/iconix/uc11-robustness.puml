@@ -1,0 +1,53 @@
+@startuml
+left to right direction
+title Robustness Diagram UC-11 Memperbarui Status Penanganan
+actor "Petugas Instansi" as pet
+actor "Operator Polsek" as ops
+boundary "Dasbor Laporan (Instansi)" as bDasbor
+boundary "Halaman Detail Laporan" as bDetail
+control "Ambil Laporan yang diteruskan ke Instansi-nya" as cDaftar
+control "Periksa hak: diteruskan ke Instansi atau wilayah Polsek [1a]; status Ditugaskan hanya oleh Admin [2b]" as cHak
+control "Tolak: tidak diizinkan [1a, 2b]" as cErrIzin
+control "Periksa status hanya maju satu tahap" as cUrut
+control "Tolak lompat atau mundur status" as cErrUrut
+control "Catat kegiatan tanpa ubah status (konfirmasi, keberangkatan) [2, 2a, 4, 4a]" as cKegiatan
+control "Ubah status Laporan dan laporan ganda" as cUbah
+control "Tandai Penerusan dikonfirmasi (Konfirmasi Terima Tugas)" as cKonfirmasi
+control "Catat Riwayat Status" as cRiwayat
+control "Kirim Notifikasi ke Warga dan Admin Polres (memuat nama petugas)" as cNotif
+control "Tampilkan tombol status berikutnya" as cTombol
+entity "Dispatch (Penerusan)" as ePenerusan
+entity "Report (Laporan)" as eLaporan
+entity "Incident (Kejadian)" as eKejadian
+entity "StatusHistory (Riwayat Status)" as eRiwayat
+entity "Notification (Notifikasi)" as eNotif
+boundary "Layanan Push (mis. FCM)" as bPush
+pet --> bDasbor
+pet --> bDetail
+ops --> bDetail
+bDasbor --> cDaftar
+cDaftar --> ePenerusan
+bDetail --> cHak
+cHak --> ePenerusan : cek
+cHak --> cErrIzin
+cErrIzin --> bDetail
+cHak --> cUrut
+cHak --> cKegiatan
+cUrut --> cErrUrut
+cErrUrut --> bDetail
+cUrut --> cKegiatan
+cKegiatan --> cRiwayat
+cUrut --> cUbah
+cUbah --> eLaporan
+cUbah --> eKejadian
+cKegiatan --> cKonfirmasi
+cKonfirmasi --> ePenerusan
+cKegiatan --> cNotif
+cUbah --> cRiwayat
+cRiwayat --> eRiwayat
+cUbah --> cNotif
+cNotif --> eNotif
+cNotif --> bPush
+cUbah --> cTombol
+cTombol --> bDetail
+@enduml

@@ -106,3 +106,7 @@ Warga yang belum punya akun mendaftar dari aplikasi Android agar dapat masuk dan
 
 - Verifikasi nomor HP lewat OTP tidak termasuk lingkup.
 - Aplikasi Android yang menampilkan Layar Masuk setelah 201; API tidak mengarahkan.
+
+## Perubahan 25 November 2026: alamat Warga
+
+Menyesuaikan requirement tim mobile v0.5 (BR-11, FR-01): pendaftaran boleh menyertakan `address` (teks, maksimal 200 karakter). Di API kolom ini **opsional** agar kontrak lama tetap berlaku; layar Android boleh mewajibkannya. Alamat lebih dari 200 karakter → 422 "Alamat maksimal 200 karakter" pada kolom `address`. Disimpan di `users.address` (migrasi 011) dan ikut dikembalikan pada respons daftar dan `GET /api/auth/me`. Kasus uji: UJ-01.11.

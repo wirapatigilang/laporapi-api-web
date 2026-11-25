@@ -9,6 +9,7 @@ import { IncidentRepository, ReportRepository, StatusHistoryRepository, type Rep
 import { DuplicateDetectionService } from "./duplicate-detection";
 import { ExifService } from "./exif-service";
 import { GeoService, LOCATION_MISMATCH_METERS, haversine, isValidCoordinate, isWithinRadius, roundForDisplay, type Coordinate } from "./geo";
+import { DashboardStream } from "./dashboard-stream";
 import { NotificationService } from "./notification-service";
 import { ReportNumberService } from "./report-number";
 
@@ -206,6 +207,13 @@ export const ReportService = {
 
     const saved = (await ReportRepository.findById(reportId))!;
     const report = toSubmittedReport(saved);
+    // UC-06 2a: dasbor yang terbuka menerima Laporan baru (laporan ganda hanya memperbarui jumlahnya).
+    DashboardStream.broadcast({
+      event: report.isDuplicate ? "incident-updated" : "report-created",
+      incidentId: saved.incidentId,
+      reportId: saved.primaryReportId,
+      policeSectorId: saved.policeSectorId,
+    });
     const message = report.isDuplicate
       ? "Laporan Anda tergabung dengan laporan lain di lokasi yang sama"
       : `Laporan ${report.reportNumber} terkirim, sedang diverifikasi`;

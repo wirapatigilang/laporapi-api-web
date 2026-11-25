@@ -1,0 +1,53 @@
+openapi: 3.1.0
+info: { title: Lapor Api — UC-03 Mengelola Akun Petugas, version: 0.12.0 }
+paths:
+  /api/officers:
+    get:
+      summary: Daftar akun Operator Polsek dan Petugas Instansi — Admin Polres
+      security: [{ bearer: [] }]
+      responses:
+        "200": { description: "{ officers: Officer[] }" }
+        "403": { description: Bukan Admin Polres }
+    post:
+      summary: Menambah akun petugas; kata sandi awal dikembalikan sekali
+      security: [{ bearer: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, phoneNumber, role]
+              properties:
+                name: { type: string, minLength: 2, maxLength: 100 }
+                phoneNumber: { type: string, description: "Dinormalisasi ke 08…" }
+                role: { type: string, enum: [SECTOR_OPERATOR, AGENCY_OFFICER] }
+                policeSectorId: { type: string, format: uuid, description: Wajib untuk SECTOR_OPERATOR }
+                agencyId: { type: string, format: uuid, description: Wajib untuk AGENCY_OFFICER }
+      responses:
+        "201":
+          description: Tersimpan
+          content:
+            application/json:
+              example: { message: Akun petugas ditambahkan, officer: { id: "…", name: Operator Nanga Taman, phoneNumber: "081234567890", role: SECTOR_OPERATOR, roleLabel: Operator Polsek, isActive: true, statusLabel: Aktif, policeSector: { id: "…", name: Polsek Nanga Taman }, agency: null }, initialPassword: "Kp7xR2mQwe" }
+        "403": { description: Bukan Admin Polres }
+        "409": { description: "PHONE_TAKEN, fields.phoneNumber 'Nomor HP sudah dipakai'" }
+        "422": { description: "fields.name / phoneNumber / role / policeSectorId / agencyId" }
+  /api/officers/{id}:
+    patch:
+      summary: Mengubah akun petugas (aturan sama dengan pembuatan; kata sandi tetap)
+      security: [{ bearer: [] }]
+      responses:
+        "200": { description: "{ message, officer }" }
+        "404": { description: Akun petugas tidak ditemukan }
+        "409": { description: Nomor HP sudah dipakai }
+        "422": { description: Isian tidak valid }
+  /api/officers/{id}/deactivate:
+    post:
+      summary: Menonaktifkan akun; akun tidak dapat masuk dan tokennya ditolak (401 ACCOUNT_INACTIVE)
+      security: [{ bearer: [] }]
+      responses:
+        "200": { description: "{ message: 'Akun petugas dinonaktifkan', officer }" }
+        "404": { description: Akun petugas tidak ditemukan }
+        "409": { description: Akun sudah tidak aktif }
+components:
+  securitySchemes: { bearer: { type: http, scheme: bearer } }
