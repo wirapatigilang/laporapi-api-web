@@ -2,6 +2,7 @@ import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
 import { ApiError } from "./lib/errors";
 import { authRoutes } from "./routes/auth";
+import { dashboardRoutes } from "./routes/dashboard";
 import { notificationRoutes } from "./routes/notifications";
 import { reportRoutes } from "./routes/reports";
 
@@ -28,5 +29,6 @@ export function createApp() {
     .get("/api/health", () => ({ status: "ok" }))
     .use(authRoutes)
     .use(reportRoutes)
-    .use(notificationRoutes);
+    .use(notificationRoutes)
+    .use(dashboardRoutes);
 }

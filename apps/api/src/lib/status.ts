@@ -8,3 +8,6 @@ export const STATUS_LABELS: Record<ReportStatus, string> = {
   IN_PROGRESS: "Penanganan Berlangsung",
   RESOLVED: "Penanganan Selesai",
 };
+
+export const REPORT_STATUSES = Object.keys(STATUS_LABELS) as ReportStatus[];
+export const isReportStatus = (v: unknown): v is ReportStatus => typeof v === "string" && v in STATUS_LABELS;
