@@ -11,7 +11,7 @@
 	<nav aria-label="Menu utama">
 		<a href="/dashboard" class:active={active === 'dashboard'}>Dasbor</a>
 		<a href="/notifications" class:active={active === 'notifications'} data-testid="nav-notifications">Notifikasi</a>
-		{#if user.role === 'ADMIN'}<a href="/accounts" class:active={active === 'accounts'} data-testid="nav-accounts">Kelola Akun</a>{/if}
+		{#if user.role === 'ADMIN'}<a href="/officers" class:active={active === 'officers'} data-testid="nav-accounts">Kelola Akun</a>{/if}
 	</nav>
 	<div class="who">
 		<span data-testid="user-name">{user.name}</span>

@@ -38,7 +38,7 @@
 
 <svelte:head><title>Kelola Akun · Lapor Api</title></svelte:head>
 
-<AppHeader user={data.user} active="accounts" />
+<AppHeader user={data.user} active="officers" />
 
 <main class="content">
 	<div class="title">

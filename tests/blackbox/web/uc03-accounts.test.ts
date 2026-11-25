@@ -146,7 +146,7 @@ describe("UC-03 mengelola akun petugas", () => {
     const page = await openPage();
     await signIn(page, SEED.operator, SEED_PASSWORD);
     expect(await page.getByTestId("nav-accounts").count()).toBe(0);
-    const res = await page.goto(`${WEB_URL}/accounts`);
+    const res = await page.goto(`${WEB_URL}/officers`);
     expect(res?.status()).toBe(403);
   });
 });

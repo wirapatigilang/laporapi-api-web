@@ -21,4 +21,4 @@ CRUD akun petugas (tanpa hapus) untuk Admin Polres, kata sandi awal sekali tampi
 - `services/officer-service.ts`: `list`, `create`, `update`, `deactivate`, `validate`, `generateInitialPassword`.
 - `routes/officers.ts`: `GET/POST /api/officers`, `PATCH /api/officers/:id`, `POST /api/officers/:id/deactivate`.
 - `plugins/auth-guard.ts`: token akun tidak aktif → `ACCOUNT_INACTIVE`.
-- Web `routes/accounts`: daftar, Formulir Akun (tambah/ubah, isian Polsek/Instansi mengikuti peran), kotak kata sandi awal, Dialog Konfirmasi Nonaktif; menu "Kelola Akun" khusus Admin.
+- Web `routes/officers`: daftar, Formulir Akun (tambah/ubah, isian Polsek/Instansi mengikuti peran), kotak kata sandi awal, Dialog Konfirmasi Nonaktif; menu "Kelola Akun" khusus Admin.

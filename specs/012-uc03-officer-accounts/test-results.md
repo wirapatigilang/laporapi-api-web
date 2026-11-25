@@ -10,7 +10,7 @@ Tanggal: 2026-11-25 · Lingkungan: Bun 1.4.4, ElysiaJS 1.4, SvelteKit 3.4 + Svel
 | UJ-03.04 | Web | US1-4 | EP | Nama kosong | "Nama wajib diisi"; tidak tersimpan | Lulus |
 | UJ-03.05 | Web | US2-1 | UC | Petugas BPBD → Manggala Agni | Formulir terisi data lama; Instansi berubah di daftar dan basis data | Lulus |
 | UJ-03.06 | Web, API | US2-2 | UC | Nonaktifkan + konfirmasi, lalu masuk | "Tidak aktif"; masuk ditolak "Akun Anda tidak aktif, hubungi Admin Polres"; token lama 401 `ACCOUNT_INACTIVE` | Lulus |
-| UJ-03.07 | API, Web | US3-1 | EP | Operator Polsek dan Petugas Instansi | 403; menu Kelola Akun tidak tampil; halaman `/accounts` 403 | Lulus |
+| UJ-03.07 | API, Web | US3-1 | EP | Operator Polsek dan Petugas Instansi | 403; menu Kelola Akun tidak tampil; halaman `/officers` 403 | Lulus |
 
 **Ringkasan:** 7 dari 7 lulus pada putaran pertama. Seluruh rangkaian (iterasi 1–12): **132/132 lulus**.
 
