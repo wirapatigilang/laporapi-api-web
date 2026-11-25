@@ -17,6 +17,7 @@ paths:
                 name: { type: string, minLength: 2, maxLength: 100 }
                 phoneNumber: { type: string, example: "081234567890" }
                 password: { type: string, minLength: 8, maxLength: 200 }
+                address: { type: string, maxLength: 200, nullable: true, description: "Opsional (requirement tim mobile v0.5 BR-11)" }
       responses:
         "201":
           description: Akun Warga tersimpan (langkah 4–5)

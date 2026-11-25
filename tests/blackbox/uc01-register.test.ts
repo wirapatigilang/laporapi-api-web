@@ -78,4 +78,14 @@ describe("UC-01 Mendaftar Akun Warga", () => {
     expect(res.status).toBe(422);
     expect(Object.keys(res.body.error.fields).sort()).toEqual(["name", "password", "phoneNumber"]);
   });
+
+  test("UJ-01.11 alamat diisi → 201 dan tersimpan; alamat 201 karakter → 422 pada kolom address", async () => {
+    const data = { ...valid(), address: "Dusun Sungai Ringin RT 02, Sekadau Hilir" };
+    const res = await api("POST", "/api/auth/register", data);
+    expect(res.status).toBe(201);
+    expect(res.body.user.address).toBe(data.address);
+    const long = await api("POST", "/api/auth/register", { ...valid(), address: "a".repeat(201) });
+    expect(long.status).toBe(422);
+    expect(long.body.error.fields.address).toBe("Alamat maksimal 200 karakter");
+  });
 });
