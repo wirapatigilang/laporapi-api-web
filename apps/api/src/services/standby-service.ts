@@ -3,7 +3,7 @@
  */
 import { sql } from "../db/client";
 import { ApiError, validationError } from "../lib/errors";
-import { IncidentCommands } from "../repositories/incident-repository";
+import { agencyIdsOf, IncidentCommands } from "../repositories/incident-repository";
 import { StatusHistoryRepository } from "../repositories/report-repository";
 import { forbidden, notFound, type Viewer } from "./access";
 import { DashboardStream } from "./dashboard-stream";
@@ -30,7 +30,7 @@ export const StandbyService = {
       });
       return incident;
     });
-    DashboardStream.broadcast({ event: "incident-updated", incidentId: result.incidentId, reportId: result.primaryReportId, policeSectorId: result.policeSectorId });
+    DashboardStream.broadcast({ event: "incident-updated", incidentId: result.incidentId, reportId: result.primaryReportId, policeSectorId: result.policeSectorId, agencyIds: await agencyIdsOf(result.incidentId) });
     return { message: "Personel Polsek disiagakan", sectorStandby: true };
   },
 };

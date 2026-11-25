@@ -12,7 +12,12 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		const rr = await callApi('GET', '/api/rejection-reasons', { token: locals.token });
 		if (rr.status === 200) rejectionReasons = rr.body.reasons;
 	}
-	return { user: locals.user, report: res.body.report as any, hotspots: res.body.hotspots as any, rejectionReasons };
+	let agencies: { id: string; name: string }[] = [];
+	if (locals.user.role === 'ADMIN' && ['VERIFIED', 'ASSIGNED', 'IN_PROGRESS'].includes(res.body.report.status)) {
+		const ag = await callApi('GET', '/api/agencies', { token: locals.token });
+		if (ag.status === 200) agencies = ag.body.agencies;
+	}
+	return { user: locals.user, report: res.body.report as any, hotspots: res.body.hotspots as any, rejectionReasons, agencies };
 };
 
 /** Meneruskan tindakan di Halaman Detail Laporan ke API dan mengembalikan pesan hasil/galat. */
@@ -40,6 +45,12 @@ export const actions: Actions = {
 	fieldCheck: async ({ locals, params, request }) => {
 		const form = await request.formData();
 		return act(locals, 'fieldCheck', `/api/reports/${params.id}/notes`, { note: String(form.get('note') ?? '') });
+	},
+	// UC-10 langkah 3–6
+	dispatch: async ({ locals, params, request }) => {
+		const form = await request.formData();
+		const agencyIds = form.getAll('agencyIds').map(String);
+		return act(locals, 'dispatch', `/api/reports/${params.id}/dispatches`, { agencyIds, note: String(form.get('note') ?? '') });
 	},
 	// UC-09 langkah 2–4
 	standby: async ({ locals, params, request }) => {

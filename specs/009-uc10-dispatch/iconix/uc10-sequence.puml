@@ -1,0 +1,45 @@
+@startuml
+title Sequence Diagram UC-10 Meneruskan Laporan ke Instansi
+autonumber
+actor "Admin Polres" as adm
+boundary "DispatchDialog" as dlg
+control "DispatchService" as pnr
+entity "Agency" as ins
+entity "Report" as lpr
+entity "Dispatch" as ptr
+entity "StatusHistory" as rws
+control "NotificationService" as ntf
+note over adm : 1–2. Admin menekan Teruskan ke Instansi; sistem membuka dialog berisi daftar Instansi.
+adm -> dlg : tekan Teruskan ke Instansi
+dlg -> pnr : GET /api/agencies
+pnr -> ins : list()
+pnr --> dlg : BPBD, Damkar, Manggala Agni, DLH, TNI
+note over adm : 3. Admin memilih Instansi, boleh menulis catatan, lalu Teruskan.
+adm -> dlg : pilih Instansi, Teruskan
+dlg -> pnr : POST /api/reports/:id/dispatches {agencyIds, note?}
+alt bukan Admin Polres
+pnr --> dlg : 403 forbidden
+else 3a. tidak ada Instansi dipilih
+pnr --> dlg : 422 minimal satu Instansi
+else status bukan VERIFIED / ASSIGNED / IN_PROGRESS
+pnr --> dlg : 409 laporan belum diverifikasi
+else valid
+pnr -> lpr : currentStatus?
+pnr -> ptr : existing(reportId, agencyIds) [3b]
+note over adm : 4. Sistem menyimpan Penerusan baru, mengubah status menjadi Petugas Ditugaskan, dan mencatat Riwayat Status.
+loop setiap Instansi yang belum diteruskan
+pnr -> ptr : save(dispatchedAt = now)
+end
+alt currentStatus = VERIFIED
+pnr -> lpr : changeStatus(ASSIGNED, admin) + laporan ganda
+pnr -> rws : record(STATUS, ASSIGNED, 'Diteruskan ke ...')
+else 3b. sudah ASSIGNED / IN_PROGRESS
+pnr -> rws : record(ACTIVITY, 'Instansi ditambahkan')
+end
+note over adm : 5. Notifikasi ke Petugas Instansi terpilih dan Warga.
+pnr -> ntf : send(selected agency officers + reporter)
+note over adm : 6. Dialog menampilkan penerima 'menunggu konfirmasi'.
+pnr --> dlg : 201 dispatches[]
+end
+note across : 6a: saat Dasbor Laporan dimuat, DispatchService.hasOverdue() menandai Penerusan yang belum dikonfirmasi lebih dari 60 menit.
+@enduml

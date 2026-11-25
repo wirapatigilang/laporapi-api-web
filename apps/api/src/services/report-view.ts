@@ -22,7 +22,7 @@ export const isUuid = (v: unknown): v is string => typeof v === "string" && UUID
 export function scopeFor(viewer: Viewer): IncidentScope {
   if (viewer.role === "ADMIN") return {};
   if (viewer.role === "SECTOR_OPERATOR") return { policeSectorId: viewer.policeSectorId };
-  // Petugas Instansi: Laporan yang diteruskan ke Instansinya; Penerusan baru ada di UC-10.
+  if (viewer.role === "AGENCY_OFFICER") return viewer.agencyId ? { agencyId: viewer.agencyId } : { none: true };
   return { none: true };
 }
 

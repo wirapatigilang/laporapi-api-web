@@ -16,7 +16,7 @@
 	const standbyBlocked = $derived(r.status === 'REJECTED' ? 'Laporan sudah ditolak' : r.status === 'RESOLVED' ? 'Penanganan sudah selesai' : null);
 	const canDispatch = $derived(isAdmin && ['VERIFIED', 'ASSIGNED', 'IN_PROGRESS'].includes(r.status));
 
-	let confirming = $state<null | 'verify' | 'reject'>(null);
+	let confirming = $state<null | 'verify' | 'reject' | 'dispatch'>(null);
 	let showPhone = $state(false);
 	let showFieldCheck = $state(false);
 	let busy = $state(false);
@@ -27,7 +27,7 @@
 		return async ({ result, update }: { result: { type: string }; update: (o?: { reset?: boolean }) => Promise<void> }) => {
 			busy = false;
 			// Dialog tetap terbuka bila isian ditolak (422) agar pesan tampil di dalamnya.
-			if (!(result.type === 'failure' && confirming === 'reject' && (result as any).status === 422)) confirming = null;
+			if (!(result.type === 'failure' && (confirming === 'reject' || confirming === 'dispatch') && (result as any).status === 422)) confirming = null;
 			await update({ reset: false });
 		};
 	};
@@ -62,7 +62,7 @@
 		{#if r.isDuplicate}<span class="note" data-testid="duplicate-of">Tergabung dengan laporan <a href={`/reports/${r.primaryReport.id}`}>{r.primaryReport.reportNumber}</a></span>{/if}
 	</div>
 
-	{#if form?.message && !(confirming === 'reject' && form.action === 'reject')}
+	{#if form?.message && !(confirming && form.action === confirming)}
 		<p class={form.success ? 'result ok' : 'result err'} role={form.success ? 'status' : 'alert'} data-testid="action-result" data-action={form.action}>{form.message}</p>
 	{/if}
 
@@ -73,7 +73,7 @@
 				<button type="button" class="danger" data-testid="reject-button" disabled={!canDecide || busy} onclick={() => (confirming = 'reject')}>Tolak</button>
 				<button type="button" class="ghost" data-testid="contact-button" onclick={() => (showPhone = !showPhone)}>Hubungi Warga</button>
 				<button type="button" class="ghost" data-testid="field-check-button" disabled={!canDecide} onclick={() => (showFieldCheck = !showFieldCheck)}>Minta cek lapangan</button>
-				<button type="button" class="primary" data-testid="dispatch-button" disabled={!canDispatch}>Teruskan ke Instansi</button>
+				<button type="button" class="primary" data-testid="dispatch-button" disabled={!canDispatch || busy} onclick={() => (confirming = 'dispatch')}>Teruskan ke Instansi</button>
 			</div>
 			{#if showPhone}
 				<p class="contact" data-testid="contact-info">Hubungi {r.reporter.name}:
@@ -124,6 +124,35 @@
 					<div class="buttons end">
 						<button type="button" class="ghost" data-testid="reject-cancel" onclick={() => (confirming = null)}>Batal</button>
 						<button type="submit" class="primary" data-testid="reject-submit" disabled={busy}>Kirim Penolakan</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	{/if}
+
+	{#if confirming === 'dispatch'}
+		{@const fields = form?.action === 'dispatch' ? (form?.fields ?? {}) : {}}
+		{@const sent = new Set((r.dispatches ?? []).map((d: any) => d.agency.id))}
+		<div class="backdrop" role="presentation">
+			<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dispatch-title" data-testid="dispatch-dialog">
+				<h2 id="dispatch-title">Teruskan laporan {r.reportNumber} ke Instansi</h2>
+				<form method="POST" action="?/dispatch" use:enhance={submitting} class="stack">
+					<fieldset class="reasons">
+						<legend>Instansi penerima</legend>
+						{#each data.agencies as a}
+							<label class="radio">
+								<input type="checkbox" name="agencyIds" value={a.id} data-testid="agency-option" />{a.name}
+								{#if sent.has(a.id)}<small class="muted" data-testid="already-dispatched">(sudah diteruskan)</small>{/if}
+							</label>
+						{/each}
+					</fieldset>
+					{#if fields.agencyIds}<small class="field-error" data-testid="agency-error">{fields.agencyIds}</small>{/if}
+					<label for="dispatch-note">Catatan <small class="muted">(opsional)</small></label>
+					<textarea id="dispatch-note" name="note" rows="2" maxlength="500"></textarea>
+					{#if r.status !== 'VERIFIED'}<p class="small muted">Status tetap {r.statusLabel}; penambahan instansi dicatat sebagai kegiatan.</p>{/if}
+					<div class="buttons end">
+						<button type="button" class="ghost" data-testid="dispatch-cancel" onclick={() => (confirming = null)}>Batal</button>
+						<button type="submit" class="primary" data-testid="dispatch-submit" disabled={busy}>Teruskan</button>
 					</div>
 				</form>
 			</div>
@@ -195,6 +224,21 @@
 				{/if}
 				<p class="muted small">Hanya petunjuk untuk pertimbangan Admin Polres, bukan penentu keputusan.</p>
 			</div>
+
+			{#if r.dispatches?.length}
+				<div class="card" data-testid="dispatches">
+					<h2>Instansi penerima {#if r.isOverdue}<span class="tag overdue" data-testid="detail-overdue">belum direspons</span>{/if}</h2>
+					<ul class="plain">
+						{#each r.dispatches as d}
+							<li data-testid="dispatch-item" data-state={d.state}>
+								<strong>{d.agency.name}</strong>
+								<span class="tag" class:waiting={d.state === 'WAITING'} class:confirmed={d.state === 'CONFIRMED'} data-testid="dispatch-state">{d.stateLabel}</span>
+								<small class="muted">diteruskan {formatDateTime(d.dispatchedAt)}{d.confirmedAt ? ` · dikonfirmasi ${formatDateTime(d.confirmedAt)}${d.confirmedBy ? ` oleh ${d.confirmedBy}` : ''}` : ''}</small>
+							</li>
+						{/each}
+					</ul>
+				</div>
+			{/if}
 
 			<div class="card" data-testid="reporter">
 				<h2>Warga pelapor</h2>
@@ -270,6 +314,11 @@
 	.field-error { color: #c92a2a; }
 	.tag { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
 	.tag.standby { background: #d3f9d8; color: #2b8a3e; }
+	.tag.waiting { background: #fff3bf; color: #8a5a00; }
+	.tag.confirmed { background: #d3f9d8; color: #2b8a3e; }
+	.tag.overdue { background: #ffe3e3; color: #c92a2a; margin-left: 6px; }
+	.plain { list-style: none; padding: 0; display: grid; gap: 8px; }
+	.plain li { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 	.blocked { align-self: center; color: #c92a2a; font-size: 14px; font-weight: 600; }
 	.reasons { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; }
 	.reasons legend { font-weight: 600; margin-bottom: 4px; }

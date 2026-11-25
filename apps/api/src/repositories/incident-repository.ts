@@ -13,6 +13,8 @@ export interface IncidentFilter {
 export interface IncidentScope {
   /** null = semua (Admin Polres). */
   policeSectorId?: string | null;
+  /** Petugas Instansi: hanya Kejadian yang laporan utamanya diteruskan ke Instansi ini (UC-10). */
+  agencyId?: string | null;
   none?: boolean;
 }
 
@@ -44,6 +46,7 @@ export const IncidentQueries = {
     const from = filter.from ?? null;
     const to = filter.to ?? null;
     const scopeSector = scope.policeSectorId ?? null;
+    const scopeAgency = scope.agencyId ?? null;
     return db`SELECT i.id AS "incidentId", i.is_open AS "isOpen", r.id AS "reportId", r.report_number AS "reportNumber",
         r.reported_at AS "reportedAt", r.received_at AS "receivedAt", r.current_status AS status,
         r.latitude, r.longitude, r.district_id AS "districtId", d.name AS "districtName",
@@ -60,6 +63,7 @@ export const IncidentQueries = {
         AND (${from}::date IS NULL OR r.reported_at >= (${from}::date)::timestamp AT TIME ZONE 'Asia/Jakarta')
         AND (${to}::date IS NULL OR r.reported_at < ((${to}::date) + 1)::timestamp AT TIME ZONE 'Asia/Jakarta')
         AND (${scopeSector}::uuid IS NULL OR r.police_sector_id = ${scopeSector}::uuid)
+        AND (${scopeAgency}::uuid IS NULL OR EXISTS (SELECT 1 FROM dispatches dp WHERE dp.report_id = r.id AND dp.agency_id = ${scopeAgency}::uuid))
       ORDER BY r.received_at DESC
       LIMIT 500`;
   },
@@ -79,6 +83,12 @@ export const IncidentQueries = {
     return rows[0] ?? null;
   },
 };
+
+/** Instansi yang menerima Penerusan untuk Kejadian (cakupan siaran dasbor Petugas Instansi). */
+export async function agencyIdsOf(incidentId: string, db: SQL = sql): Promise<string[]> {
+  const rows = await db`SELECT d.agency_id AS id FROM dispatches d JOIN incidents i ON i.primary_report_id = d.report_id WHERE i.id = ${incidentId}`;
+  return rows.map((r: { id: string }) => r.id);
+}
 
 export interface LockedIncident {
   incidentId: string;

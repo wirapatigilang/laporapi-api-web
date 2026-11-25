@@ -38,7 +38,10 @@ export async function canView(viewer: Viewer, report: { id: string; reporterId: 
   }
 }
 
-/** Petugas Instansi: Laporan utama Kejadian sudah diteruskan ke Instansinya. Penerusan baru ada di UC-10. */
-export async function isDispatchedToAgency(_incidentId: string, _agencyId: string | null): Promise<boolean> {
-  return false;
+/** Petugas Instansi: laporan utama Kejadian sudah diteruskan ke Instansinya (UC-10). */
+export async function isDispatchedToAgency(incidentId: string, agencyId: string | null): Promise<boolean> {
+  if (!agencyId) return false;
+  const rows = await sql`SELECT 1 FROM dispatches d JOIN incidents i ON i.primary_report_id = d.report_id
+    WHERE i.id = ${incidentId} AND d.agency_id = ${agencyId} LIMIT 1`;
+  return rows.length > 0;
 }

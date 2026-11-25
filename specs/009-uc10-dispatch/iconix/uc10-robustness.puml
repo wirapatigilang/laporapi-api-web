@@ -1,0 +1,52 @@
+@startuml
+left to right direction
+title Robustness Diagram UC-10 Meneruskan Laporan ke Instansi
+actor "Admin Polres" as adm
+boundary "Halaman Detail Laporan" as bDetail
+boundary "Dialog Teruskan ke Instansi" as bDialog
+boundary "Dasbor Laporan" as bDasbor
+control "Periksa status Laporan Diverifikasi (atau sudah Ditugaskan bila menambah Instansi)" as cStatus
+control "Ambil daftar Instansi" as cInstansi
+control "Periksa minimal satu Instansi dipilih [3a]" as cMinimal
+control "Minta minimal satu Instansi dipilih" as cErr
+control "Lewati Instansi yang sudah pernah diteruskan [3b]" as cGanda
+control "Simpan Penerusan untuk setiap Instansi" as cSimpan
+control "Catat Riwayat Status (status atau kegiatan tambah Instansi)" as cRiwayat
+control "Ubah status Laporan dan laporan ganda menjadi Petugas Ditugaskan" as cUbah
+control "Kirim Notifikasi ke Petugas Instansi terpilih dan Warga" as cNotif
+control "Tampilkan Instansi penerima 'menunggu konfirmasi'" as cTampil
+control "Hitung tanda 'belum direspons' (> 60 menit) [6a]" as cTelat
+entity "Report (Laporan)" as eLaporan
+entity "Agency (Instansi)" as eInstansi
+entity "Dispatch (Penerusan)" as ePenerusan
+entity "StatusHistory (Riwayat Status)" as eRiwayat
+entity "Notification (Notifikasi)" as eNotif
+entity "User (Petugas Instansi)" as ePengguna
+adm --> bDetail
+adm --> bDialog
+adm --> bDasbor
+bDetail --> cStatus
+cStatus --> eLaporan
+cStatus --> cInstansi
+cInstansi --> eInstansi
+cInstansi --> bDialog
+bDialog --> cMinimal
+cMinimal --> cErr
+cErr --> bDialog
+cMinimal --> cGanda
+cGanda --> ePenerusan : cek
+cGanda --> cSimpan
+cSimpan --> ePenerusan
+cSimpan --> cUbah
+cUbah --> eLaporan
+cUbah --> cRiwayat
+cSimpan --> cRiwayat
+cRiwayat --> eRiwayat
+cSimpan --> cNotif
+cNotif --> eNotif
+cNotif --> ePengguna
+cSimpan --> cTampil
+cTampil --> bDetail
+bDasbor --> cTelat
+cTelat --> ePenerusan
+@enduml

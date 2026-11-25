@@ -2,7 +2,7 @@
  * Penyiapan kondisi awal uji iterasi 4–12 lewat API (dan basis data uji bila kondisi
  * tidak dapat dibuat lewat API pada iterasi tersebut). Tidak mengimpor kode aplikasi.
  */
-import { api, db, loginAs, newCitizen, SEED } from "./helpers";
+import { api, db, loginAs, newCitizen, SEED, SEED_PASSWORD, uniquePhone } from "./helpers";
 import { freshPoint, jpegWithGps, jpegWithoutGps, north, reportForm } from "./fixtures";
 
 export type Citizen = Awaited<ReturnType<typeof newCitizen>>;
@@ -51,3 +51,33 @@ export async function notificationsFor(token: string, reportId: string) {
 export const statusOf = async (reportId: string) => (await db`SELECT current_status FROM reports WHERE id = ${reportId}`)[0].current_status as string;
 export const historyOf = (reportId: string) =>
   db`SELECT type, status, activity, note, actor_id FROM status_histories WHERE report_id = ${reportId} ORDER BY created_at, id`;
+
+/** ID Instansi menurut sebagian namanya (mis. "BPBD", "TNI"). */
+export async function agencyId(namePart: string): Promise<string> {
+  const [row] = await db`SELECT id FROM agencies WHERE name ILIKE ${"%" + namePart + "%"}`;
+  if (!row) throw new Error(`Instansi ${namePart} tidak ada`);
+  return row.id;
+}
+
+/** Akun Petugas Instansi uji (dibuat langsung di basis data uji sebelum UC-03; lalu lewat API). */
+export async function newOfficer(agencyNamePart: string, name = `Petugas ${agencyNamePart}`) {
+  const phone = uniquePhone();
+  const hash = await Bun.password.hash(SEED_PASSWORD);
+  const [user] = await db`INSERT INTO users (name, phone_number, password_hash, role, agency_id)
+    VALUES (${name}, ${phone}, ${hash}, 'AGENCY_OFFICER', ${await agencyId(agencyNamePart)}) RETURNING id`;
+  return { id: user.id as string, name, phoneNumber: phone, token: await loginAs(phone) };
+}
+
+/** Laporan sampai berstatus Laporan Diverifikasi (UC-04 → UC-07). */
+export async function verifiedReport(citizen: Citizen, adminToken: string, opts: Parameters<typeof submitReport>[1] = {}) {
+  const report = await submitReport(citizen, opts);
+  const res = await api("POST", `/api/reports/${report.id}/verify`, {}, adminToken);
+  if (res.status !== 200) throw new Error(`Gagal memverifikasi laporan uji: ${res.status}`);
+  return report;
+}
+
+/** Laporan diteruskan ke Instansi (UC-10). */
+export async function dispatchTo(reportId: string, agencyNameParts: string[], adminToken: string, note?: string) {
+  const agencyIds = await Promise.all(agencyNameParts.map(agencyId));
+  return api("POST", `/api/reports/${reportId}/dispatches`, { agencyIds, note }, adminToken);
+}

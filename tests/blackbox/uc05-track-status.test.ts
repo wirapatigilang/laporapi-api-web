@@ -1,7 +1,7 @@
 // Uji Black Box UC-05 Memantau Status Laporan (spec: specs/007-uc05-track-status/spec.md)
 import { beforeAll, describe, expect, test } from "bun:test";
 import { api, db, newCitizen, SEED } from "./helpers";
-import { closeOpenIncidents, incidentWithDuplicates, notificationsFor, submitReport, tokens, type Citizen } from "./scenario";
+import { closeOpenIncidents, dispatchTo, incidentWithDuplicates, notificationsFor, submitReport, tokens, type Citizen } from "./scenario";
 
 let adminToken: string;
 let adminId: string;
@@ -52,10 +52,9 @@ describe("UC-05 memantau status laporan", () => {
   });
 
   test("UJ-05.04 detail laporan berstatus Petugas Ditugaskan → status, riwayat bertanggal, nama petugas; tanpa posisi tim", async () => {
-    // Kondisi awal: Petugas Ditugaskan disiapkan di basis data uji (UC-10 dibangun pada iterasi 9; diuji ulang di sana).
+    // Kondisi awal: Laporan diteruskan ke BPBD lewat UC-10 (iterasi 9; sebelumnya disiapkan di basis data uji).
     const r = sent[1];
-    await db`UPDATE reports SET current_status = 'ASSIGNED' WHERE id = ${r.id}`;
-    await db`INSERT INTO status_histories (report_id, type, status, actor_id) VALUES (${r.id}, 'STATUS', 'ASSIGNED', ${adminId})`;
+    expect((await dispatchTo(r.id, ["BPBD"], adminToken)).status).toBe(201);
     const res = await detail(citizen, r.id);
     expect(res.status).toBe(200);
     const d = res.body.report;
@@ -64,6 +63,8 @@ describe("UC-05 memantau status laporan", () => {
     expect(d.history.map((h: any) => h.statusLabel)).toEqual(["Laporan Diterima", "Laporan Diverifikasi", "Petugas Ditugaskan"]);
     expect(d.history.every((h: any) => typeof h.createdAt === "string")).toBe(true);
     expect(d.history[2].actorName).toBe("Admin Polres Sekadau");
+    expect(d.history[2].note).toBe("Diteruskan ke BPBD Kabupaten Sekadau");
+    expect(d.handlingAgencies).toEqual([{ name: "BPBD Kabupaten Sekadau", confirmed: false }]);
     // Tidak ada data posisi tim, data pelapor lain, atau petunjuk titik panas.
     const text = JSON.stringify(res.body);
     for (const key of ["teamPosition", "duplicates", "reporter", "hasLocationMismatch", "photoCoordinate"]) expect(text).not.toContain(`"${key}"`);
