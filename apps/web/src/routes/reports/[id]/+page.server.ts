@@ -41,6 +41,11 @@ export const actions: Actions = {
 		const form = await request.formData();
 		return act(locals, 'fieldCheck', `/api/reports/${params.id}/notes`, { note: String(form.get('note') ?? '') });
 	},
+	// UC-09 langkah 2–4
+	standby: async ({ locals, params, request }) => {
+		const form = await request.formData();
+		return act(locals, 'standby', `/api/reports/${params.id}/standby`, { note: String(form.get('note') ?? '') });
+	},
 	// UC-08 langkah 3–6
 	reject: async ({ locals, params, request }) => {
 		const form = await request.formData();

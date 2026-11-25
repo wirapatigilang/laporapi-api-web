@@ -12,6 +12,8 @@
 	const role = $derived(data.user.role);
 	const isAdmin = $derived(role === 'ADMIN');
 	const canDecide = $derived(isAdmin && r.status === 'RECEIVED');
+	const isOperator = $derived(role === 'SECTOR_OPERATOR');
+	const standbyBlocked = $derived(r.status === 'REJECTED' ? 'Laporan sudah ditolak' : r.status === 'RESOLVED' ? 'Penanganan sudah selesai' : null);
 	const canDispatch = $derived(isAdmin && ['VERIFIED', 'ASSIGNED', 'IN_PROGRESS'].includes(r.status));
 
 	let confirming = $state<null | 'verify' | 'reject'>(null);
@@ -56,6 +58,7 @@
 	<div class="head">
 		<h1 data-testid="report-number">{r.reportNumber}</h1>
 		<span data-testid="report-status"><StatusBadge status={r.status} /></span>
+		{#if r.sectorStandby}<span class="tag standby" data-testid="standby-flag" title={`${r.sectorStandby.by ?? ''} · ${formatDateTime(r.sectorStandby.at)}`}>Polsek sudah siaga</span>{/if}
 		{#if r.isDuplicate}<span class="note" data-testid="duplicate-of">Tergabung dengan laporan <a href={`/reports/${r.primaryReport.id}`}>{r.primaryReport.reportNumber}</a></span>{/if}
 	</div>
 
@@ -84,6 +87,19 @@
 					<div><button type="submit" class="primary" disabled={busy}>Kirim permintaan</button></div>
 				</form>
 			{/if}
+		</section>
+	{/if}
+
+	{#if isOperator}
+		<section class="card actions" data-testid="operator-actions" aria-label="Tindakan Operator Polsek">
+			<form method="POST" action="?/standby" use:enhance={submitting} class="stack">
+				<label for="standby-note">Catatan penyiagaan <small class="muted">(opsional, mis. jumlah personel)</small></label>
+				<textarea id="standby-note" name="note" rows="2" maxlength="500" disabled={!!standbyBlocked}></textarea>
+				<div class="buttons">
+					<button type="submit" class="primary" data-testid="standby-button" disabled={!!standbyBlocked || busy}>Siagakan Personel</button>
+					{#if standbyBlocked}<span class="blocked" data-testid="standby-blocked">{standbyBlocked}</span>{/if}
+				</div>
+			</form>
 		</section>
 	{/if}
 
@@ -252,6 +268,9 @@
 	.stack { display: grid; gap: 6px; font-size: 14px; }
 	textarea { font: inherit; font-size: 14px; padding: 8px; border: 1px solid #dccfc8; border-radius: 8px; background: #fffdfc; }
 	.field-error { color: #c92a2a; }
+	.tag { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+	.tag.standby { background: #d3f9d8; color: #2b8a3e; }
+	.blocked { align-self: center; color: #c92a2a; font-size: 14px; font-weight: 600; }
 	.reasons { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; }
 	.reasons legend { font-weight: 600; margin-bottom: 4px; }
 	.radio { display: flex; gap: 8px; align-items: center; }

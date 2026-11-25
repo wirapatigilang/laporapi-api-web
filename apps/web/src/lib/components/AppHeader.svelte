@@ -10,6 +10,7 @@
 	<a class="brand" href="/dashboard"><img src={logo} alt="" width="28" height="28" /> <strong>Lapor Api</strong></a>
 	<nav aria-label="Menu utama">
 		<a href="/dashboard" class:active={active === 'dashboard'}>Dasbor</a>
+		<a href="/notifications" class:active={active === 'notifications'} data-testid="nav-notifications">Notifikasi</a>
 	</nav>
 	<div class="who">
 		<span data-testid="user-name">{user.name}</span>

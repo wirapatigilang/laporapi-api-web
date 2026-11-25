@@ -1,0 +1,28 @@
+@startuml
+title Sequence Diagram UC-09 Menyiagakan Personel Polsek
+autonumber
+actor "Operator Polsek" as ops
+boundary "ReportDetailPage" as det
+control "HandlingService" as tgn
+entity "Report" as lpr
+entity "StatusHistory" as rws
+control "DashboardStream (SSE)" as sia
+note over ops : 1. Operator membuka Notifikasi; sistem membuka Halaman Detail Laporan.
+ops -> det : buka dari Notifikasi
+note over ops : 2. Operator menekan Siagakan Personel dan boleh menulis catatan.
+ops -> det : tekan Siagakan Personel
+det -> tgn : POST /api/reports/:id/standby {note?}
+tgn -> lpr : findById(id)
+alt 2b. policeSectorId Laporan ≠ Polsek operator
+tgn --> det : 403 forbidden
+else 2a. status REJECTED
+tgn --> det : 409 'Laporan sudah ditolak'
+else boleh
+note over ops : 3. Sistem mencatat kegiatan tanpa mengubah status.
+tgn -> rws : record(ACTIVITY, 'Personel Polsek disiagakan', operator)
+note over ops : 4. Tanda 'Polsek sudah siaga' tampil di detail dan Dasbor Admin.
+tgn -> sia : broadcast('sector-standby', report)
+tgn --> det : 201
+end
+det --> ops : tampilkan tanda siaga
+@enduml
