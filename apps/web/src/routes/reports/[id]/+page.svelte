@@ -19,7 +19,7 @@
 	const departBlocked = $derived(r.status === 'REJECTED' || r.status === 'RESOLVED');
 	const canDispatch = $derived(isAdmin && ['VERIFIED', 'ASSIGNED', 'IN_PROGRESS'].includes(r.status));
 
-	let confirming = $state<null | 'verify' | 'reject' | 'dispatch'>(null);
+	let confirming = $state<null | 'verify' | 'reject' | 'dispatch' | 'resolve'>(null);
 	let showPhone = $state(false);
 	let showFieldCheck = $state(false);
 	let busy = $state(false);
@@ -117,6 +117,7 @@
 						disabled={!handlingOpen || !r.myDispatch || r.myDispatch.confirmed || busy}>{r.myDispatch?.confirmed ? 'Tugas sudah dikonfirmasi' : 'Konfirmasi Terima Tugas'}</button>
 					<button type="submit" name="kind" value="DEPARTED" class="ghost" data-testid="depart-button" disabled={!handlingOpen || busy}>Catat Keberangkatan</button>
 					<button type="submit" name="kind" value="IN_PROGRESS" class="primary" data-testid="start-button" disabled={r.status !== 'ASSIGNED' || busy}>Mulai Penanganan</button>
+					<button type="button" class="primary" data-testid="resolve-button" disabled={r.status !== 'IN_PROGRESS' || !r.myDispatch || busy} onclick={() => (confirming = 'resolve')}>Nyatakan Selesai</button>
 				</div>
 			</form>
 		</section>
@@ -173,6 +174,19 @@
 						<button type="button" class="ghost" data-testid="dispatch-cancel" onclick={() => (confirming = null)}>Batal</button>
 						<button type="submit" class="primary" data-testid="dispatch-submit" disabled={busy}>Teruskan</button>
 					</div>
+				</form>
+			</div>
+		</div>
+	{/if}
+
+	{#if confirming === 'resolve'}
+		<div class="backdrop" role="presentation">
+			<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="resolve-title" data-testid="resolve-dialog">
+				<h2 id="resolve-title">Nyatakan penanganan laporan {r.reportNumber} selesai?</h2>
+				<p>Api sudah padam. Status laporan{r.duplicates.length ? ` dan ${r.duplicates.length} laporan ganda` : ''} menjadi Penanganan Selesai dan tiket kejadian ditutup.</p>
+				<form method="POST" action="?/resolve" use:enhance={submitting} class="buttons end">
+					<button type="button" class="ghost" onclick={() => (confirming = null)}>Batal</button>
+					<button type="submit" class="primary" data-testid="resolve-yes" disabled={busy}>Ya</button>
 				</form>
 			</div>
 		</div>

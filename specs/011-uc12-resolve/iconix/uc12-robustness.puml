@@ -1,0 +1,43 @@
+@startuml
+left to right direction
+title Robustness Diagram UC-12 Menyatakan Penanganan Selesai
+actor "Petugas Instansi" as pet
+boundary "Halaman Detail Laporan" as bDetail
+boundary "Dialog Konfirmasi" as bKonf
+control "Periksa peran Petugas Instansi [1b]" as cPeran
+control "Tolak: tidak diizinkan" as cErrPeran
+control "Periksa status Penanganan Berlangsung [1a]" as cStatus
+control "Tolak; tombol Nyatakan Selesai tidak aktif" as cErrStatus
+control "Minta konfirmasi (tanpa catatan)" as cKonf
+control "Ubah status Laporan dan laporan ganda menjadi Penanganan Selesai" as cUbah
+control "Tutup tiket Kejadian" as cTutup
+control "Catat Riwayat Status" as cRiwayat
+control "Kirim Notifikasi 'api sudah padam' ke Warga, Admin Polres, Operator Polsek" as cNotif
+entity "User (Pengguna)" as ePengguna
+entity "Report (Laporan)" as eLaporan
+entity "Incident (Kejadian)" as eKejadian
+entity "StatusHistory (Riwayat Status)" as eRiwayat
+entity "Notification (Notifikasi)" as eNotif
+boundary "Layanan Push (mis. FCM)" as bPush
+pet --> bDetail
+pet --> bKonf
+bDetail --> cPeran
+cPeran --> ePengguna
+cPeran --> cErrPeran
+cErrPeran --> bDetail
+cPeran --> cStatus
+cStatus --> eLaporan : cek
+cStatus --> cErrStatus
+cErrStatus --> bDetail
+cStatus --> cKonf
+cKonf --> bKonf
+bKonf --> cUbah
+cUbah --> eLaporan
+cUbah --> cTutup
+cTutup --> eKejadian
+cUbah --> cRiwayat
+cRiwayat --> eRiwayat
+cUbah --> cNotif
+cNotif --> eNotif
+cNotif --> bPush
+@enduml

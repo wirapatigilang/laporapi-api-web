@@ -60,6 +60,8 @@ export const actions: Actions = {
 		const json = kind === 'IN_PROGRESS' ? { nextStatus: 'IN_PROGRESS', note } : { activity: kind, note };
 		return act(locals, 'handling', `/api/reports/${params.id}/status`, json);
 	},
+	// UC-12 langkah 3–5
+	resolve: async ({ locals, params }) => act(locals, 'resolve', `/api/reports/${params.id}/resolve`, {}),
 	// UC-09 langkah 2–4
 	standby: async ({ locals, params, request }) => {
 		const form = await request.formData();
