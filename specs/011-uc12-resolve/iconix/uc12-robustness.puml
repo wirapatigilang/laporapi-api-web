@@ -1,10 +1,11 @@
 @startuml
 left to right direction
 title Robustness Diagram UC-12 Menyatakan Penanganan Selesai
-actor "Petugas Instansi" as pet
+actor "Admin Polres" as pet
 boundary "Halaman Detail Laporan" as bDetail
-boundary "Dialog Konfirmasi" as bKonf
-control "Periksa peran Petugas Instansi [1b]" as cPeran
+boundary "Dialog Konfirmasi (Penanganan Berlangsung → Penanganan Selesai)" as bKonf
+control "Periksa peran Admin Polres [1b]" as cPeran
+control "Tutup dialog tanpa perubahan [2a]" as cBatal
 control "Tolak: tidak diizinkan" as cErrPeran
 control "Periksa status Penanganan Berlangsung [1a]" as cStatus
 control "Tolak; tombol Nyatakan Selesai tidak aktif" as cErrStatus
@@ -12,7 +13,7 @@ control "Minta konfirmasi (tanpa catatan)" as cKonf
 control "Ubah status Laporan dan laporan ganda menjadi Penanganan Selesai" as cUbah
 control "Tutup tiket Kejadian" as cTutup
 control "Catat Riwayat Status" as cRiwayat
-control "Kirim Notifikasi 'api sudah padam' ke Warga, Admin Polres, Operator Polsek" as cNotif
+control "Kirim Notifikasi 'api sudah padam' ke Warga, Operator Polsek, Petugas Instansi penerima Penerusan" as cNotif
 entity "User (Pengguna)" as ePengguna
 entity "Report (Laporan)" as eLaporan
 entity "Incident (Kejadian)" as eKejadian
@@ -31,6 +32,8 @@ cStatus --> cErrStatus
 cErrStatus --> bDetail
 cStatus --> cKonf
 cKonf --> bKonf
+bKonf --> cBatal
+cBatal --> bDetail
 bKonf --> cUbah
 cUbah --> eLaporan
 cUbah --> cTutup

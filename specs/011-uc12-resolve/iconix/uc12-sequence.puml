@@ -1,17 +1,17 @@
 @startuml
 title Sequence Diagram UC-12 Menyatakan Penanganan Selesai
 autonumber
-actor "Petugas Instansi" as pet
+actor "Admin Polres" as pet
 boundary "ReportDetailPage" as det
 control "HandlingService" as tgn
 entity "Report" as lpr
 entity "Incident" as kjd
 entity "StatusHistory" as rws
 control "NotificationService" as ntf
-note over pet : 1–3. Petugas menekan Nyatakan Selesai dan menekan Ya pada konfirmasi (tanpa catatan).
-pet -> det : tekan Nyatakan Selesai, Ya
+note over pet : 1–3. Admin menekan Nyatakan Selesai; dialog menampilkan perubahan status; Admin menekan Ya (tanpa catatan). 2a: Batal menutup dialog.
+pet -> det : tekan Nyatakan Selesai, Ya, nyatakan selesai
 det -> tgn : POST /api/reports/:id/resolve
-alt 1b. role bukan AGENCY_OFFICER
+alt 1b. role bukan ADMIN
 tgn --> det : 403 forbidden
 end
 tgn -> lpr : currentStatus == IN_PROGRESS?
@@ -19,11 +19,11 @@ alt 1a. belum Penanganan Berlangsung
 tgn --> det : 409 status belum Penanganan Berlangsung
 else boleh
 note over pet : 4. Sistem mengubah status (juga laporan ganda), mencatat riwayat, menutup tiket.
-tgn -> kjd : applyStatus(RESOLVED, officer)
+tgn -> kjd : applyStatus(RESOLVED, admin)
 tgn -> kjd : close()
-tgn -> rws : record(STATUS, RESOLVED, officer)
-note over pet : 5. Notifikasi ke Warga, Admin Polres, dan Operator Polsek.
-tgn -> ntf : send(reporters + admins + operators, 'api sudah padam')
+tgn -> rws : record(STATUS, RESOLVED, admin)
+note over pet : 5. Notifikasi ke Warga, Operator Polsek, dan Petugas Instansi penerima Penerusan.
+tgn -> ntf : send(reporters + operators + dispatched officers, 'api sudah padam')
 tgn --> det : 200 updated report
 end
 det --> pet : tampilkan Penanganan Selesai
