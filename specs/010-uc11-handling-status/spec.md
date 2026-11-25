@@ -40,7 +40,7 @@ Alternate course:
 - Q: Kapan Petugas Instansi boleh mencatat konfirmasi/keberangkatan? → A: Saat status Petugas Ditugaskan atau Penanganan Berlangsung (Instansi yang ditambahkan belakangan tetap bisa mengonfirmasi).
 - Q: Apakah keberangkatan diberi Notifikasi? → A: Tidak (langkah 6 hanya menyebut konfirmasi dan perubahan status).
 - Q: Riwayat kegiatan menyebut Instansi? → A: Catatan kegiatan diawali nama Instansi (mis. "BPBD Kabupaten Sekadau. Satu regu …").
-- Q: `nextStatus = RESOLVED`? → A: Ditangani UC-12 (iterasi 11) dengan aturan yang sama.
+- Q: `nextStatus = RESOLVED`? → A: Ditangani UC-12 (iterasi 11) dengan aturan yang sama; sejak amandemen 2026-11-25 hanya Admin Polres yang boleh.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -80,3 +80,10 @@ Alternate course:
 ## Success Criteria *(mandatory)*
 - **SC-001**: UJ-11.01–UJ-11.11 lulus.
 - **SC-002**: Uji iterasi 1–9 tetap lulus.
+
+## Amandemen 2026-11-25 (masukan dosen pembimbing)
+
+- Tombol Mulai Penanganan membuka dialog konfirmasi yang menampilkan perubahan status (Petugas Ditugaskan → Penanganan Berlangsung), akibatnya, dan isian catatan opsional. Status baru berubah setelah petugas menekan "Ya, mulai penanganan".
+- Tombol Mulai Penanganan aktif hanya bila Laporan berstatus Petugas Ditugaskan dan diteruskan ke Instansi petugas tersebut.
+- Petugas Instansi tidak lagi menyatakan Penanganan Selesai (lihat amandemen UC-12). `nextStatus: RESOLVED` dari Petugas Instansi → 403.
+- Kasus uji UJ-11.04 ditambah langkah menekan Ya pada dialog konfirmasi.

@@ -83,3 +83,10 @@ Alternate course:
 ## Success Criteria *(mandatory)*
 - **SC-001**: UJ-10.01–UJ-10.09 lulus.
 - **SC-002**: Uji iterasi 1–8 tetap lulus; UJ-05.04 diuji ulang dengan Penerusan sungguhan.
+
+## Amandemen 2026-11-25 (masukan dosen pembimbing)
+
+- Dialog Teruskan ke Instansi diubah: Instansi tampil sebagai kartu dengan kotak centang, ada tombol **Pilih semua / Batalkan semua**, penghitung "N dari M dipilih", dan tombol kirim "Teruskan ke N instansi".
+- Instansi yang sudah menerima Penerusan tampil dengan tanda "sudah diteruskan" dan tidak bisa dipilih lagi. API tetap menolak Penerusan ulang (409 bila semua sudah menerima, atau dilewati bila sebagian).
+- Dialog menampilkan perubahan status (Laporan Diverifikasi → Petugas Ditugaskan) bila Laporan belum pernah diteruskan.
+- Kasus uji UJ-10.04 diubah (BPBD tidak bisa dipilih lagi lewat web; Penerusan ulang lewat API → 409) dan ditambah UJ-10.10 (Pilih semua).

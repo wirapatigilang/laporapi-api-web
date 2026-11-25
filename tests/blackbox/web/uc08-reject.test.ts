@@ -127,13 +127,16 @@ describe("UC-08 menolak laporan", () => {
     expect(await page.getByTestId("rejection-reason").innerText()).toBe("Foto tidak jelas atau bukan kebakaran");
   });
 
-  test("UJ-08.08 menolak laporan berstatus Laporan Diverifikasi → 409, status tetap", async () => {
+  test("UJ-08.08 menolak laporan yang masih aktif (Laporan Diverifikasi) → Laporan Ditolak; laporan berstatus akhir → 409", async () => {
     const report = await submitReport(citizen);
     expect((await api("POST", `/api/reports/${report.id}/verify`, {}, adminToken)).status).toBe(200);
     const res = await api("POST", `/api/reports/${report.id}/reject`, { reasonId: reasons.PRANK }, adminToken);
-    expect(res.status).toBe(409);
-    expect(res.body.error.message).toMatch(/^Laporan sudah diproses oleh .+ pada .+ WIB$/);
-    expect(await statusOf(report.id)).toBe("VERIFIED");
+    expect(res.status).toBe(200);
+    expect(await statusOf(report.id)).toBe("REJECTED");
+    const again = await api("POST", `/api/reports/${report.id}/reject`, { reasonId: reasons.PRANK }, adminToken);
+    expect(again.status).toBe(409);
+    expect(again.body.error.message).toMatch(/^Laporan sudah diproses oleh .+ pada .+ WIB$/);
+    expect(await statusOf(report.id)).toBe("REJECTED");
   });
 
   test("UJ-08.09 laporan baru 30 m dari laporan yang sudah ditolak → Kejadian baru dibuat", async () => {

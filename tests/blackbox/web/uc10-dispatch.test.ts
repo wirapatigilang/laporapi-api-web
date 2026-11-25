@@ -91,19 +91,21 @@ describe("UC-10 meneruskan laporan ke instansi", () => {
     expect(await statusOf(report.id)).toBe("VERIFIED");
   });
 
-  test("UJ-10.04 BPBD dipilih lagi bersama TNI pada Laporan Petugas Ditugaskan → hanya TNI ditambahkan sebagai kegiatan, status tetap", async () => {
+  test("UJ-10.04 BPBD sudah menerima Penerusan → tidak bisa dipilih lagi, TNI ditambahkan sebagai kegiatan, status tetap", async () => {
     const tni = await newOfficer("TNI");
     const report = await verifiedReport(citizen, adminToken);
     expect((await dispatchTo(report.id, ["BPBD"], adminToken)).status).toBe(201);
     const page = await openDispatchDialog(report.id);
     expect(await page.getByTestId("already-dispatched").count()).toBe(1);
-    await page.getByLabel("BPBD Kabupaten Sekadau").check();
+    expect(await page.getByLabel("BPBD Kabupaten Sekadau").isDisabled()).toBe(true);
     await page.getByLabel("TNI (Kodim 1204/Sanggau)").check();
     await page.getByTestId("dispatch-submit").click();
     await page.waitForSelector('[data-testid="history-item"][data-activity="AGENCY_ADDED"]');
-    expect(await page.getByTestId("action-result").innerText()).toBe(
-      "Diteruskan ke TNI (Kodim 1204/Sanggau); BPBD Kabupaten Sekadau sudah menerima penerusan sebelumnya",
-    );
+    expect(await page.getByTestId("action-result").innerText()).toBe("Laporan diteruskan ke TNI (Kodim 1204/Sanggau)");
+    // Lewat API, Instansi yang sudah menerima Penerusan tetap ditolak.
+    const again = await dispatchTo(report.id, ["BPBD"], adminToken);
+    expect(again.status).toBe(409);
+    expect(again.body.error.message).toBe("Semua instansi yang dipilih sudah menerima penerusan");
     expect(await page.getByTestId("dispatch-item").count()).toBe(2);
     expect(await dispatchCount(report.id)).toBe(2);
     expect(await statusOf(report.id)).toBe("ASSIGNED");
@@ -165,5 +167,21 @@ describe("UC-10 meneruskan laporan ke instansi", () => {
     expect(bad.status).toBe(422);
     expect(bad.body.error.fields.agencyIds).toBe("Instansi tidak dikenal");
     expect(await agencyId("Manggala")).toBeTruthy();
+  });
+
+  test("UJ-10.10 Admin menekan Pilih semua → semua Instansi terpilih dan Laporan diteruskan ke semuanya", async () => {
+    const report = await verifiedReport(citizen, adminToken);
+    const total = Number((await db`SELECT count(*)::int AS n FROM agencies`)[0].n);
+    const page = await openDispatchDialog(report.id);
+    await page.getByTestId("select-all-agencies").click();
+    expect(await page.getByTestId("agency-selected-count").innerText()).toBe(`${total} dari ${total} dipilih`);
+    expect(await page.getByTestId("select-all-agencies").innerText()).toBe("Batalkan semua");
+    await page.getByTestId("select-all-agencies").click();
+    expect(await page.getByTestId("agency-selected-count").innerText()).toBe(`0 dari ${total} dipilih`);
+    await page.getByTestId("select-all-agencies").click();
+    expect(await page.getByTestId("dispatch-submit").innerText()).toBe(`Teruskan ke ${total} instansi`);
+    await page.getByTestId("dispatch-submit").click();
+    await page.waitForSelector('[data-testid="report-status"] [data-status="ASSIGNED"]');
+    expect(await dispatchCount(report.id)).toBe(total);
   });
 });

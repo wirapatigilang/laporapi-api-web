@@ -8,11 +8,11 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 	if (res.status === 401) redirect(303, '/login?expired=1');
 	if (res.status !== 200) error(res.status, res.body?.error?.message ?? 'Laporan tidak dapat dibuka');
 	let rejectionReasons: { id: string; label: string; requiresNote: boolean }[] = [];
-	if (locals.user.role === 'ADMIN' && res.body.report.status === 'RECEIVED') {
+	if (locals.user.role === 'ADMIN' && !['REJECTED', 'RESOLVED'].includes(res.body.report.status)) {
 		const rr = await callApi('GET', '/api/rejection-reasons', { token: locals.token });
 		if (rr.status === 200) rejectionReasons = rr.body.reasons;
 	}
-	let agencies: { id: string; name: string }[] = [];
+	let agencies: { id: string; name: string; type?: string }[] = [];
 	if (locals.user.role === 'ADMIN' && ['VERIFIED', 'ASSIGNED', 'IN_PROGRESS'].includes(res.body.report.status)) {
 		const ag = await callApi('GET', '/api/agencies', { token: locals.token });
 		if (ag.status === 200) agencies = ag.body.agencies;

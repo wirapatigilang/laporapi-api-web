@@ -67,7 +67,7 @@ Alternate course:
 ### User Story 4 - Perubahan yang ditolak (Priority: P1) — FR-29
 
 **Acceptance Scenarios**:
-1. **Given** Laporan Diverifikasi, **When** Admin menolak, **Then** 409 dan status tetap.
+1. **Given** Laporan Diverifikasi (atau Petugas Ditugaskan, Penanganan Berlangsung), **When** Admin menolak, **Then** Laporan Ditolak; Petugas Instansi penerima Penerusan diberi Notifikasi. **Given** Laporan Ditolak atau Penanganan Selesai, **When** Admin menolak, **Then** 409 dan status tetap.
 2. **Given** Operator Polsek, **When** memanggil penolakan, **Then** 403; alasan yang tidak dikenal 422.
 
 ### Edge Cases
@@ -81,9 +81,9 @@ Alternate course:
 - **FR-002** (FR-23): `POST /api/reports/:id/reject {reasonId, note?}` MUST mengubah semua Laporan dalam Kejadian menjadi Laporan Ditolak, menyimpan alasan dan catatan, mencatat Riwayat Status per Laporan, dan menutup Kejadian dalam satu transaksi.
 - **FR-003** (FR-23 3a, 3b): Alasan kosong atau tidak dikenal, atau "Lainnya" tanpa catatan, MUST menghasilkan 422 tanpa perubahan.
 - **FR-004** (FR-23): Sistem MUST menyimpan Notifikasi berisi alasan untuk setiap pelapor dan Notifikasi untuk Operator Polsek wilayah.
-- **FR-005** (FR-29): Status selain Laporan Diterima MUST menghasilkan 409; peran selain Admin 403.
+- **FR-005** (FR-29, amandemen 2026-11-25): Penolakan MUST diterima selama Laporan masih aktif (status bukan Laporan Ditolak atau Penanganan Selesai); status akhir menghasilkan 409; peran selain Admin 403.
 - **FR-006** (NFR-09): Laporan Ditolak MUST tetap tersimpan, tampil lewat saringan status, dan detailnya memuat `rejection {code, reason, note}`.
-- **FR-007**: Halaman Detail Laporan MUST menampilkan tombol Tolak (aktif hanya pada Laporan Diterima) dan Dialog Tolak Laporan dengan tombol Batal dan Kirim Penolakan.
+- **FR-007**: Halaman Detail Laporan MUST menampilkan tombol Tolak (aktif selama Laporan masih aktif) dan Dialog Tolak Laporan dengan tombol Batal dan Kirim Penolakan.
 
 ### Key Entities
 - **RejectionReason (Alasan Penolakan)**: baru — `code`, `label`, `requiresNote`.
@@ -92,3 +92,10 @@ Alternate course:
 ## Success Criteria *(mandatory)*
 - **SC-001**: UJ-08.01–UJ-08.10 lulus.
 - **SC-002**: Uji iterasi 1–5 tetap lulus; UJ-07.03 (tombol Tolak) dan UJ-07.07 (Laporan Ditolak lewat API) diuji ulang.
+
+## Amandemen 2026-11-25 (masukan dosen pembimbing)
+
+- Admin Polres boleh menolak (membatalkan) Laporan kapan saja selama Laporan masih aktif: Laporan Diterima, Laporan Diverifikasi, Petugas Ditugaskan, atau Penanganan Berlangsung. Tidak ada status baru; hasilnya tetap Laporan Ditolak (keputusan Gilang, 25 November 2026).
+- Bila Laporan sudah diteruskan, Petugas Instansi penerima Penerusan menerima Notifikasi "Laporan ditolak Admin Polres (alasan: …). Penanganan dihentikan."
+- Dialog Tolak menampilkan perubahan status (status sekarang → Laporan Ditolak) dan akibatnya sebelum Admin menekan "Ya, tolak laporan".
+- Kasus uji UJ-08.08 diubah: menolak Laporan Diverifikasi → 200 Laporan Ditolak; menolak lagi Laporan yang sudah Ditolak → 409.

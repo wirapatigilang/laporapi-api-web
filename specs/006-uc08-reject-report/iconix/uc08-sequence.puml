@@ -9,24 +9,28 @@ entity "Report" as lpr
 entity "Incident" as kjd
 entity "StatusHistory" as rws
 control "NotificationService" as ntf
-note over adm : 1–2. Admin menekan Tolak; sistem membuka dialog berisi pilihan alasan.
+note over adm : 1–2. Admin menekan Tolak; dialog menampilkan perubahan status dan pilihan alasan.
 adm -> dlg : tekan Tolak
 dlg -> ver : GET /api/rejection-reasons
 ver -> als : list()
 ver --> dlg : reasons[]
-note over adm : 3. Admin memilih alasan, boleh menambah catatan, lalu Kirim Penolakan.
-adm -> dlg : pilih alasan, Kirim Penolakan
+note over adm : 3. Admin memilih alasan, boleh menambah catatan, lalu Ya, tolak laporan.
+adm -> dlg : pilih alasan, Ya, tolak laporan
 dlg -> ver : POST /api/reports/:id/reject {reasonId, note?}
 alt 3a / 3b. alasan kosong, atau 'Lainnya' tanpa catatan
 ver --> dlg : 422 minta alasan/catatan
-else valid
-note over adm : 4. Sistem mengubah status (juga laporan ganda), menyimpan alasan, mencatat riwayat, menutup tiket.
-ver -> lpr : changeStatusIf(RECEIVED → REJECTED), save reason
+end
+ver -> kjd : lockByReport(id); status aktif?
+alt 1b. status akhir (REJECTED / RESOLVED)
+ver --> dlg : 409 Laporan sudah diproses
+else aktif (RECEIVED, VERIFIED, ASSIGNED, IN_PROGRESS)
+note over adm : 4. Sistem menyimpan alasan, mengubah status (juga laporan ganda), mencatat riwayat, menutup tiket.
+ver -> lpr : save reason, note
 ver -> kjd : applyStatus(REJECTED) [4a]
 ver -> kjd : close()
 ver -> rws : record(STATUS, REJECTED, admin)
-note over adm : 5. Notifikasi berisi alasan ke Warga dan ke Operator Polsek.
-ver -> ntf : send(all reporters, reason) + sector operators
+note over adm : 5. Notifikasi berisi alasan ke Warga, Operator Polsek, dan Petugas Instansi penerima Penerusan [1a].
+ver -> ntf : send(reporters, reason) + sector operators + dispatched officers
 ver --> dlg : 200 updated report
 end
 note over adm : 6. Halaman menampilkan status Laporan Ditolak. 3c: Batal menutup dialog tanpa permintaan ke API.
