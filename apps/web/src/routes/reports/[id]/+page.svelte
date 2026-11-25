@@ -3,11 +3,31 @@
 	import LeafletMap, { type MapPoint } from '#lib/components/LeafletMap.svelte';
 	import StatusBadge from '#lib/components/StatusBadge.svelte';
 	import { formatCoord, formatDateTime, formatMeters } from '#lib/status.js';
+	import { enhance } from '$app/forms';
 	import type { PageProps } from './$types';
 
-	let { data }: PageProps = $props();
+	let { data, form }: PageProps = $props();
 	const r = $derived(data.report);
 	const h = $derived(data.hotspots);
+	const role = $derived(data.user.role);
+	const isAdmin = $derived(role === 'ADMIN');
+	const canDecide = $derived(isAdmin && r.status === 'RECEIVED');
+	const canDispatch = $derived(isAdmin && ['VERIFIED', 'ASSIGNED', 'IN_PROGRESS'].includes(r.status));
+
+	let confirming = $state<null | 'verify'>(null);
+	let showPhone = $state(false);
+	let showFieldCheck = $state(false);
+	let busy = $state(false);
+
+	/** Setelah tindakan: tutup dialog dan muat ulang data halaman. */
+	const submitting = () => {
+		busy = true;
+		return async ({ update }: { update: (o?: { reset?: boolean }) => Promise<void> }) => {
+			busy = false;
+			confirming = null;
+			await update({ reset: false });
+		};
+	};
 
 	const points: MapPoint[] = $derived.by(() => {
 		const list: MapPoint[] = [
@@ -37,6 +57,46 @@
 		<span data-testid="report-status"><StatusBadge status={r.status} /></span>
 		{#if r.isDuplicate}<span class="note" data-testid="duplicate-of">Tergabung dengan laporan <a href={`/reports/${r.primaryReport.id}`}>{r.primaryReport.reportNumber}</a></span>{/if}
 	</div>
+
+	{#if form?.message}
+		<p class={form.success ? 'result ok' : 'result err'} role={form.success ? 'status' : 'alert'} data-testid="action-result" data-action={form.action}>{form.message}</p>
+	{/if}
+
+	{#if isAdmin}
+		<section class="card actions" data-testid="admin-actions" aria-label="Tindakan Admin Polres">
+			<div class="buttons">
+				<button type="button" class="primary" data-testid="verify-button" disabled={!canDecide || busy} onclick={() => (confirming = 'verify')}>Verifikasi</button>
+				<button type="button" class="ghost" data-testid="contact-button" onclick={() => (showPhone = !showPhone)}>Hubungi Warga</button>
+				<button type="button" class="ghost" data-testid="field-check-button" disabled={!canDecide} onclick={() => (showFieldCheck = !showFieldCheck)}>Minta cek lapangan</button>
+				<button type="button" class="primary" data-testid="dispatch-button" disabled={!canDispatch}>Teruskan ke Instansi</button>
+			</div>
+			{#if showPhone}
+				<p class="contact" data-testid="contact-info">Hubungi {r.reporter.name}:
+					<a href={`tel:${r.reporter.phoneNumber}`} data-testid="contact-phone">{r.reporter.phoneNumber}</a></p>
+			{/if}
+			{#if showFieldCheck && canDecide}
+				<form method="POST" action="?/fieldCheck" use:enhance={() => { const done = submitting(); return async (o) => { await done(o); if (o.result.type === 'success') showFieldCheck = false; }; }} data-testid="field-check-form" class="stack">
+					<label for="fc-note">Catatan untuk Operator Polsek</label>
+					<textarea id="fc-note" name="note" rows="3" maxlength="500" placeholder="Contoh: mohon pastikan asap di lokasi berasal dari lahan terbakar"></textarea>
+					{#if form?.action === 'fieldCheck' && form?.fields?.note}<small class="field-error" data-testid="note-error">{form.fields.note}</small>{/if}
+					<div><button type="submit" class="primary" disabled={busy}>Kirim permintaan</button></div>
+				</form>
+			{/if}
+		</section>
+	{/if}
+
+	{#if confirming === 'verify'}
+		<div class="backdrop" role="presentation">
+			<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="verify-title" data-testid="confirm-dialog">
+				<h2 id="verify-title">Verifikasi laporan {r.reportNumber}?</h2>
+				<p>Status laporan{r.duplicates.length ? ` dan ${r.duplicates.length} laporan ganda` : ''} menjadi Laporan Diverifikasi. Warga dan Operator Polsek akan menerima notifikasi.</p>
+				<form method="POST" action="?/verify" use:enhance={submitting} class="buttons end">
+					<button type="button" class="ghost" onclick={() => (confirming = null)}>Batal</button>
+					<button type="submit" class="primary" data-testid="confirm-yes" disabled={busy}>Ya, verifikasi</button>
+				</form>
+			</div>
+		</div>
+	{/if}
 
 	<div class="grid">
 		<section class="card">
@@ -149,4 +209,22 @@
 	a { color: #b4442a; }
 	.legend { list-style: none; display: flex; flex-wrap: wrap; gap: 12px; padding: 0; margin: 6px 0 0; font-size: 12px; color: #5b524d; }
 	.legend span { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; }
+	.actions { margin-bottom: 16px; display: grid; gap: 12px; }
+	.buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+	.buttons.end { justify-content: flex-end; }
+	button { font: inherit; font-size: 14px; font-weight: 600; border-radius: 8px; padding: 8px 14px; cursor: pointer; border: 1px solid transparent; }
+	button.primary { color: #fff; background: linear-gradient(90deg, #ff7a45, #e81a12); }
+	button.ghost { background: #fff; color: #b4442a; border-color: #f0c4b2; }
+	button.danger { background: #fff; color: #c92a2a; border-color: #ffc9c9; }
+	button:disabled { opacity: 0.45; cursor: not-allowed; }
+	.stack { display: grid; gap: 6px; font-size: 14px; }
+	textarea, select, input[type='text'] { font: inherit; font-size: 14px; padding: 8px; border: 1px solid #dccfc8; border-radius: 8px; background: #fffdfc; }
+	.field-error { color: #c92a2a; }
+	.contact { margin: 0; font-size: 14px; }
+	.result { border-radius: 8px; padding: 8px 12px; font-size: 14px; }
+	.result.ok { background: #ebfbee; color: #2b8a3e; }
+	.result.err { background: #fdecea; color: #a1180f; }
+	.backdrop { position: fixed; inset: 0; background: rgba(33, 24, 20, 0.45); display: grid; place-items: center; z-index: 2000; padding: 16px; }
+	.dialog { background: #fff; border-radius: 12px; padding: 20px; max-width: 440px; width: 100%; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); }
+	.dialog p { font-size: 14px; color: #5b524d; }
 </style>

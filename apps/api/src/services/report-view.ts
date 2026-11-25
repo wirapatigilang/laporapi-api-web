@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { config } from "../config";
 import { sql } from "../db/client";
 import { ApiError, validationError, type FieldErrors } from "../lib/errors";
+import { ACTIVITY_LABELS } from "../lib/activity";
 import { STATUS_LABELS, isReportStatus } from "../lib/status";
 import { IncidentQueries, type IncidentFilter, type IncidentRow, type IncidentScope } from "../repositories/incident-repository";
 import { ReportRepository, type ReportRow } from "../repositories/report-repository";
@@ -112,12 +113,16 @@ export interface HistoryEntry {
 }
 
 export async function historyOf(reportId: string): Promise<HistoryEntry[]> {
-  const rows = await sql`SELECT h.id, h.type, h.status, NULL::text AS activity, h.note, h.created_at AS "createdAt",
+  const rows = await sql`SELECT h.id, h.type, h.status, h.activity, h.note, h.created_at AS "createdAt",
       u.name AS "actorName", u.role AS "actorRole"
     FROM status_histories h LEFT JOIN users u ON u.id = h.actor_id
     WHERE h.report_id = ${reportId}
     ORDER BY h.created_at, h.id`;
-  return rows.map((r: HistoryEntry) => ({ ...r, statusLabel: r.status ? STATUS_LABELS[r.status as keyof typeof STATUS_LABELS] : null }));
+  return rows.map((r: HistoryEntry) => ({
+    ...r,
+    statusLabel: r.status ? STATUS_LABELS[r.status as keyof typeof STATUS_LABELS] : null,
+    activityLabel: r.activity ? (ACTIVITY_LABELS[r.activity] ?? r.activity) : null,
+  }));
 }
 
 /** Penambah isi detail dari iterasi berikutnya (alasan penolakan, Penerusan, siaga Polsek). */

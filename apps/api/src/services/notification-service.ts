@@ -21,6 +21,26 @@ export const NotificationService = {
     return recipients.length;
   },
 
+  /** NotificationService.send: satu Notifikasi per penerima (penerima ganda diabaikan). */
+  async send(tx: SQL, recipientIds: string[], title: string, body: string, reportId: string | null = null) {
+    const unique = [...new Set(recipientIds)];
+    for (const id of unique) {
+      await tx`INSERT INTO notifications (recipient_id, report_id, title, body) VALUES (${id}, ${reportId}, ${title}, ${body})`;
+    }
+    return unique.length;
+  },
+
+  async admins(tx: SQL): Promise<string[]> {
+    return (await tx`SELECT id FROM users WHERE is_active AND role = 'ADMIN'`).map((r: { id: string }) => r.id);
+  },
+
+  async sectorOperators(tx: SQL, policeSectorId: string | null): Promise<string[]> {
+    if (!policeSectorId) return [];
+    return (await tx`SELECT id FROM users WHERE is_active AND role = 'SECTOR_OPERATOR' AND police_sector_id = ${policeSectorId}`).map(
+      (r: { id: string }) => r.id,
+    );
+  },
+
   async listFor(userId: string) {
     return sql`SELECT id, report_id AS "reportId", title, body, is_read AS "isRead", created_at AS "createdAt"
       FROM notifications WHERE recipient_id = ${userId} ORDER BY created_at DESC LIMIT 100`;

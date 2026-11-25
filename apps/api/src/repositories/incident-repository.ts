@@ -79,3 +79,60 @@ export const IncidentQueries = {
     return rows[0] ?? null;
   },
 };
+
+export interface LockedIncident {
+  incidentId: string;
+  isOpen: boolean;
+  primaryReportId: string;
+  primaryReportNumber: string;
+  status: ReportStatus;
+  policeSectorId: string | null;
+}
+
+export interface IncidentMember {
+  id: string;
+  reportNumber: string;
+  reporterId: string;
+}
+
+/** Operasi tulis pada Kejadian (Incident.applyStatus, Incident.close) di dalam transaksi. */
+export const IncidentCommands = {
+  /** Mengunci Kejadian milik Laporan (laporan utama atau ganda) agar pemeriksaan status dan perubahannya tidak bertabrakan (UC-07 4a). */
+  async lockByReport(tx: SQL, reportId: string): Promise<LockedIncident | null> {
+    const rows = await tx`SELECT i.id AS "incidentId", i.is_open AS "isOpen", p.id AS "primaryReportId",
+        p.report_number AS "primaryReportNumber", p.current_status AS status, p.police_sector_id AS "policeSectorId"
+      FROM reports r JOIN incidents i ON i.id = r.incident_id JOIN reports p ON p.id = i.primary_report_id
+      WHERE r.id = ${reportId}
+      FOR UPDATE OF i`;
+    return rows[0] ?? null;
+  },
+
+  async members(tx: SQL, incidentId: string): Promise<IncidentMember[]> {
+    return tx`SELECT id, report_number AS "reportNumber", reporter_id AS "reporterId"
+      FROM reports WHERE incident_id = ${incidentId} ORDER BY received_at`;
+  },
+
+  /** Mengubah status laporan utama dan semua laporan ganda, satu entri Riwayat Status per Laporan. */
+  async applyStatus(tx: SQL, incidentId: string, next: ReportStatus, actorId: string, note: string | null = null): Promise<IncidentMember[]> {
+    const members = await this.members(tx, incidentId);
+    await tx`UPDATE reports SET current_status = ${next} WHERE incident_id = ${incidentId}`;
+    for (const m of members) {
+      await tx`INSERT INTO status_histories (report_id, type, status, actor_id, note)
+        VALUES (${m.id}, 'STATUS', ${next}, ${actorId}, ${note})`;
+    }
+    return members;
+  },
+
+  async close(tx: SQL, incidentId: string) {
+    await tx`UPDATE incidents SET is_open = false, closed_at = now() WHERE id = ${incidentId} AND is_open`;
+  },
+
+  /** Perubahan status terakhir pada laporan utama (untuk pesan 409 "sudah diproses oleh ..."). */
+  async lastStatusChange(tx: SQL, reportId: string): Promise<{ actorName: string | null; createdAt: Date } | null> {
+    const rows = await tx`SELECT u.name AS "actorName", h.created_at AS "createdAt"
+      FROM status_histories h LEFT JOIN users u ON u.id = h.actor_id
+      WHERE h.report_id = ${reportId} AND h.type = 'STATUS'
+      ORDER BY h.created_at DESC, h.id DESC LIMIT 1`;
+    return rows[0] ?? null;
+  },
+};

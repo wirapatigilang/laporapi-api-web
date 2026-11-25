@@ -1,0 +1,46 @@
+openapi: 3.1.0
+info: { title: Lapor Api — UC-07 Memverifikasi Laporan, version: 0.5.0 }
+paths:
+  /api/reports/{id}/verify:
+    post:
+      summary: Memverifikasi Kejadian milik Laporan (laporan utama dan semua laporan ganda) — Admin Polres
+      security: [{ bearer: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "200":
+          description: Berhasil
+          content:
+            application/json:
+              example: { message: Laporan diverifikasi, report: { id: "…", reportNumber: LA-0012, status: VERIFIED, statusLabel: Laporan Diverifikasi } }
+        "401": { description: Belum masuk }
+        "403": { description: Bukan Admin Polres }
+        "404": { description: Laporan tidak ditemukan }
+        "409":
+          description: Status sudah bukan Laporan Diterima
+          content:
+            application/json:
+              example: { error: { code: ALREADY_PROCESSED, message: "Laporan sudah diproses oleh Admin Polres Sekadau pada 25 November 2026 10.09 WIB", currentStatus: VERIFIED, currentStatusLabel: Laporan Diverifikasi } }
+  /api/reports/{id}/notes:
+    post:
+      summary: Permintaan cek lapangan ke Operator Polsek (kegiatan FIELD_CHECK_REQUESTED, status tetap) — Admin Polres
+      security: [{ bearer: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, required: [note], properties: { note: { type: string, minLength: 1, maxLength: 500 } } }
+      responses:
+        "201":
+          description: Tercatat
+          content:
+            application/json:
+              example: { message: Permintaan cek lapangan dikirim ke Operator Polsek, notifiedOperators: 1 }
+        "403": { description: Bukan Admin Polres }
+        "404": { description: Laporan tidak ditemukan }
+        "409": { description: Status sudah bukan Laporan Diterima }
+        "422": { description: "Catatan kosong atau > 500 karakter (fields.note)" }
+  /api/reports/{id}:
+    get:
+      summary: (perubahan tambahan) history[] memuat activity dan activityLabel
+components:
+  securitySchemes: { bearer: { type: http, scheme: bearer } }

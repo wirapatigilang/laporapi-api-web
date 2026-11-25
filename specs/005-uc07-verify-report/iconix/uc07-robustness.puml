@@ -1,0 +1,50 @@
+@startuml
+left to right direction
+title Robustness Diagram UC-07 Memverifikasi Laporan
+actor "Admin Polres" as adm
+boundary "Halaman Detail Laporan" as bDetail
+boundary "Dialog Konfirmasi" as bKonf
+boundary "Formulir Catatan Cek Lapangan" as bCatatan
+control "Tampilkan titik GPS, titik foto, jarak, dan petunjuk titik panas" as cPeta
+control "Minta konfirmasi" as cKonf
+control "Periksa status masih Laporan Diterima [4a]" as cStatus
+control "Ubah status Laporan dan laporan ganda menjadi Laporan Diverifikasi" as cUbah
+control "Catat Riwayat Status (waktu, nama Admin)" as cRiwayat
+control "Kirim Notifikasi ke Warga (termasuk laporan ganda) dan Operator Polsek" as cNotif
+control "Tampilkan status baru, aktifkan tombol Teruskan ke Instansi" as cTombol
+control "Tampilkan 'Laporan sudah diproses oleh [nama] pada [waktu]'" as cErrProses
+control "Tampilkan nomor HP Warga [1a]" as cHp
+control "Catat permintaan cek lapangan tanpa ubah status [1a]" as cCek
+entity "Report (Laporan)" as eLaporan
+entity "Incident (Kejadian)" as eKejadian
+entity "StatusHistory (Riwayat Status)" as eRiwayat
+entity "Notification (Notifikasi)" as eNotif
+entity "User (Pengguna)" as ePengguna
+boundary "Layanan Push (mis. FCM)" as bPush
+adm --> bDetail
+adm --> bKonf
+adm --> bCatatan
+bDetail --> cPeta
+cPeta --> eLaporan
+bDetail --> cKonf
+cKonf --> bKonf
+bKonf --> cStatus
+cStatus --> eLaporan : cek
+cStatus --> cUbah
+cUbah --> eLaporan
+cUbah --> eKejadian
+cUbah --> cRiwayat
+cRiwayat --> eRiwayat
+cUbah --> cNotif
+cNotif --> eNotif
+cNotif --> bPush
+cUbah --> cTombol
+cTombol --> bDetail
+cStatus --> cErrProses
+cErrProses --> bDetail
+bDetail --> cHp
+cHp --> ePengguna
+bCatatan --> cCek
+cCek --> eRiwayat
+cCek --> cNotif
+@enduml

@@ -5,6 +5,7 @@ import { authRoutes } from "./routes/auth";
 import { dashboardRoutes } from "./routes/dashboard";
 import { notificationRoutes } from "./routes/notifications";
 import { reportRoutes } from "./routes/reports";
+import { verificationRoutes } from "./routes/verification";
 
 export function createApp() {
   return new Elysia()
@@ -30,5 +31,6 @@ export function createApp() {
     .use(authRoutes)
     .use(reportRoutes)
     .use(notificationRoutes)
-    .use(dashboardRoutes);
+    .use(dashboardRoutes)
+    .use(verificationRoutes);
 }
