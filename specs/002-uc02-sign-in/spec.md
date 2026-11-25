@@ -8,7 +8,7 @@
 
 **Input**: Teks UC-02 (use case v4), FR-02, FR-03, NFR-01, NFR-05, NFR-08.
 
-**Use case ICONIX**: UC-02 · **Aktor utama**: Pengguna Terdaftar (Pelapor lewat Android; Admin Polres, Operator Polsek, Petugas Instansi lewat web) · **Lapis**: Web + API
+**Use case ICONIX**: UC-02 · **Aktor utama**: Warga (lewat Android), Admin Polres, Operator Polsek, dan Petugas Instansi (lewat web), tanpa aktor umum (generalisasi) · **Lapis**: Web + API
 
 ## Teks use case (sumber)
 
@@ -19,12 +19,12 @@ Basic course:
 2. Pengguna menekan tombol Masuk.
 3. Sistem mencocokkan data dengan Pengguna yang tersimpan.
 4. Sistem membuat token sesi yang memuat Peran pengguna.
-5. Sistem mengarahkan pengguna sesuai Peran: Pelapor ke Layar Home, Admin Polres dan Operator Polsek ke Dasbor Laporan, Petugas Instansi ke Dasbor Laporan yang hanya berisi Laporan yang diteruskan ke Instansi-nya.
+5. Sistem mengarahkan pengguna sesuai Peran: Warga ke Layar Home, Admin Polres dan Operator Polsek ke Dasbor Laporan, Petugas Instansi ke Dasbor Laporan yang hanya berisi Laporan yang diteruskan ke Instansi-nya.
 
 Alternate course:
 - **3a.** Nomor HP atau kata sandi salah: "Nomor HP atau kata sandi salah" tanpa menyebut bagian mana yang salah.
 - **3b.** Akun dinonaktifkan: "Akun Anda tidak aktif, hubungi Admin Polres".
-- **3c.** Pelapor mencoba masuk ke aplikasi web (kanal `web`): "Akun pelapor hanya dapat dipakai di aplikasi Android".
+- **3c.** Warga mencoba masuk ke aplikasi web (kanal `web`): "Akun warga hanya dapat dipakai di aplikasi Android".
 - **Kapan saja.** Token kedaluwarsa: Sistem menolak permintaan berikutnya dan meminta pengguna masuk ulang.
 
 ## Clarifications
@@ -51,10 +51,10 @@ Alternate course:
 2. **Given** akun Petugas Instansi aktif, **When** masuk dengan data benar, **Then** diarahkan ke Dasbor Laporan yang menampilkan nama Instansi-nya.
 3. **Given** akun Operator Polsek aktif, **When** masuk dengan nomor HP berawalan `+62…` untuk akun yang tersimpan `08…`, **Then** diarahkan ke Dasbor Laporan.
 
-### User Story 2 - Pelapor masuk lewat Android (Priority: P1)
+### User Story 2 - Warga masuk lewat Android (Priority: P1)
 
 **Acceptance Scenarios**:
-1. **Given** akun Pelapor aktif, **When** `POST /api/auth/login` dengan kanal `android`, **Then** 200 berisi token berperan `REPORTER` dan data pengguna tanpa kata sandi.
+1. **Given** akun Warga aktif, **When** `POST /api/auth/login` dengan kanal `android`, **Then** 200 berisi token berperan `CITIZEN` dan data pengguna tanpa kata sandi.
 
 ### User Story 3 - Kegagalan masuk (Priority: P1) — 3a, 3b, 3c
 
@@ -62,7 +62,7 @@ Alternate course:
 1. **Given** kata sandi salah, **When** masuk di web, **Then** tampil "Nomor HP atau kata sandi salah" (API 401).
 2. **Given** nomor HP tidak terdaftar, **When** masuk, **Then** pesan sama dengan skenario 1.
 3. **Given** akun nonaktif dengan kata sandi benar, **When** masuk, **Then** tampil "Akun Anda tidak aktif, hubungi Admin Polres" (API 403).
-4. **Given** akun Pelapor, **When** masuk di Halaman Masuk web (kanal `web`), **Then** ditolak dengan "Akun pelapor hanya dapat dipakai di aplikasi Android" (API 403).
+4. **Given** akun Warga, **When** masuk di Halaman Masuk web (kanal `web`), **Then** ditolak dengan "Akun warga hanya dapat dipakai di aplikasi Android" (API 403).
 5. **Given** penanda kanal tidak dikirim, **When** `POST /api/auth/login`, **Then** 422 dengan pesan pada `channel`.
 
 ### User Story 4 - Token kedaluwarsa (Priority: P2) — "Kapan saja"
@@ -84,7 +84,7 @@ Alternate course:
 - **FR-002** (FR-02): Sistem MUST mengembalikan token yang memuat id dan Peran, dan aplikasi web MUST mengarahkan petugas ke Dasbor Laporan.
 - **FR-003** (FR-03, 3a): Data salah MUST dijawab 401 dengan pesan yang tidak menyebut bagian yang salah.
 - **FR-004** (FR-03, 3b): Akun nonaktif MUST ditolak 403 dengan pesannya.
-- **FR-005** (FR-03, 3c): Akun Pelapor dengan kanal `web` MUST ditolak 403.
+- **FR-005** (FR-03, 3c): Akun Warga dengan kanal `web` MUST ditolak 403.
 - **FR-006** (FR-03): Token kedaluwarsa atau tidak sah MUST ditolak 401 pada setiap *endpoint* terlindungi.
 - **FR-007** (NFR-01): Sistem MUST menyediakan pemeriksa token dan peran yang dipakai ulang oleh *endpoint* berikutnya.
 - **FR-008**: Aplikasi web MUST menyediakan tombol Keluar yang menghapus sesi.

@@ -20,12 +20,12 @@ Titik dasar: Kecamatan Sekadau Hilir (0,17643; 110,92919) digeser ±1,5 km per u
 | UJ-04.12 | US4-1 | EP | Tanpa koordinat perangkat, EXIF di Sekadau | 201, sumber `PHOTO`, Kecamatan dari EXIF | Lulus |
 | UJ-04.13 | US4-2 | EP | Tanpa koordinat perangkat dan EXIF | 422 "Lokasi tidak terdeteksi, aktifkan GPS lalu kirim ulang" | Lulus |
 | UJ-04.14 | US5-2 | EP | Nanga Mahap tanpa Polsek | 201, "Polsek belum ditentukan", Notifikasi hanya Admin | Lulus |
-| UJ-04.15 | US6-1 (R1) | DT, BVA | 50 m, tiket terbuka, pelapor lain | 201 laporan ganda, `primaryReportNumber`, tanpa Notifikasi | Lulus |
+| UJ-04.15 | US6-1 (R1) | DT, BVA | 50 m, tiket terbuka, warga lain | 201 laporan ganda, `primaryReportNumber`, tanpa Notifikasi | Lulus |
 | UJ-04.16 | US6-2 (R2) | DT | 30 m, tiket tertutup | Kejadian baru | Lulus |
 | UJ-04.17 | US6-3 (R3) | DT, BVA | 51 m, tiket terbuka | Kejadian baru | Lulus |
 | UJ-04.18 | US6-4 (R4) | DT | 51 m, tiket tertutup | Kejadian baru | Lulus |
 | UJ-04.19 | US6-5 | BVA | 49 m, tiket terbuka | Laporan ganda | Lulus |
-| UJ-04.20 | US6-6 (3a) | EP | Pelapor sama, 20 m | Digabung, tidak ditolak | Lulus |
+| UJ-04.20 | US6-6 (3a) | EP | Warga sama, 20 m | Digabung, tidak ditolak | Lulus |
 | UJ-04.21 | US6-7 | EP | Kejadian terbuka berumur 3 hari, 20 m | Tetap digabung | Lulus |
 | UJ-04.22 | US7-1 (3b) | EP | `clientId` sama dua kali | 200 Laporan pertama, jumlah Laporan tetap, waktu lapor asli | Lulus |
 | UJ-04.23 | US8 | EP | Tanpa token / token Admin | 401 / 403, tidak tersimpan | Lulus |
@@ -58,3 +58,7 @@ Dengan kode akhir, kedua kasus lulus. Ini menunjukkan klarifikasi pada tahap *Re
 ## Converge
 
 FR-001–FR-012 punya kode dan kasus uji; UJ-04.28 ditambahkan sebagai bukti RR-3.7. Hasil: **converged**.
+
+## Uji ulang 25 November 2026 (aktor Pelapor menjadi Warga, peran `CITIZEN`)
+
+Seluruh uji Black Box dijalankan ulang setelah migrasi `005_rename_reporter_role.sql`: 54 dari 54 lulus (UC-01, UC-02 API dan web, UC-04).

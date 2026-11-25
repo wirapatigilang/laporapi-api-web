@@ -1,5 +1,6 @@
 <!--
 Sync Impact Report
+- Versi: 1.0.0 → 1.0.1 (PATCH, 2026-11-25): nama peran REPORTER diganti CITIZEN karena aktor Pelapor diganti nama menjadi Warga; isi prinsip tidak berubah.
 - Versi: (template) → 1.0.0
 - Prinsip baru: I–VII (semua baru, proyek baru)
 - Template yang diperiksa: plan-template.md ✅ (Constitution Check memakai prinsip ini), spec-template.md ✅, tasks-template.md ✅ (tugas uji Black Box wajib, bukan opsional)
@@ -51,7 +52,7 @@ Evaluasi hanya dengan Black Box Testing. Setiap skenario penerimaan di `spec.md`
 ### VII. Keamanan dan data
 
 - Kata sandi disimpan sebagai *hash* (Argon2id melalui `Bun.password`), minimal 8 karakter.
-- Setiap *endpoint* non-publik memeriksa token dan peran (`REPORTER`, `ADMIN`, `SECTOR_OPERATOR`, `AGENCY_OFFICER`).
+- Setiap *endpoint* non-publik memeriksa token dan peran (`CITIZEN`, `ADMIN`, `SECTOR_OPERATOR`, `AGENCY_OFFICER`).
 - Laporan (termasuk yang ditolak) dan riwayat status tidak pernah dihapus.
 - Rahasia (kunci JWT, kunci FIRMS, kata sandi basis data) hanya dari variabel lingkungan, tidak di-*commit*.
 
@@ -70,4 +71,4 @@ Tidak dibangun: pelacakan posisi petugas *real-time*, laporan otomatis dari titi
 
 Constitution ini mengalahkan kebiasaan lain di repositori. Perubahan prinsip dilakukan dengan mengubah file ini, menaikkan versi (MAJOR: prinsip dihapus/diubah maknanya; MINOR: prinsip baru; PATCH: perbaikan kalimat), dan mencatat alasannya di Sync Impact Report. Setiap `plan.md` wajib memuat Constitution Check terhadap prinsip I–VII.
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-24 | **Last Amended**: 2026-11-24
+**Version**: 1.0.1 | **Ratified**: 2026-11-24 | **Last Amended**: 2026-11-25

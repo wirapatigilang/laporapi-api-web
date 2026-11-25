@@ -1,11 +1,11 @@
 @startuml
 left to right direction
-title Robustness Diagram UC-01 Mendaftar Akun Pelapor
-actor "Pelapor" as pel
+title Robustness Diagram UC-01 Mendaftar Akun Warga
+actor "Warga" as pel
 boundary "Layar Daftar (Android)" as bDaftar
 control "Periksa kelengkapan dan format data" as cFormat
 control "Normalkan nomor HP (08…) dan periksa belum terdaftar" as cUnik
-control "Hash kata sandi dan simpan Pengguna peran Pelapor" as cSimpan
+control "Hash kata sandi dan simpan Pengguna peran Warga" as cSimpan
 control "Kirim tanggapan berhasil" as cOk
 control "Kembalikan pesan galat per kolom [3a]" as cErrKolom
 control "Tolak: nomor HP sudah terdaftar [3b]" as cErrAda

@@ -39,7 +39,7 @@
 			</label>
 			<button type="submit" disabled={submitting}>{submitting ? 'Memproses…' : 'Masuk'}</button>
 		</form>
-		<p class="foot">Akun petugas dibuat oleh Admin Polres. Pelapor memakai aplikasi Android.</p>
+		<p class="foot">Akun petugas dibuat oleh Admin Polres. Warga memakai aplikasi Android.</p>
 	</section>
 </main>
 

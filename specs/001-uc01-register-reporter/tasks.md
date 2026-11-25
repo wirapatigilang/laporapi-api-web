@@ -1,8 +1,8 @@
 ---
-description: "Task list UC-01 Mendaftar Akun Pelapor"
+description: "Task list UC-01 Mendaftar Akun Warga"
 ---
 
-# Tasks: UC-01 Mendaftar Akun Pelapor
+# Tasks: UC-01 Mendaftar Akun Warga
 
 **Input**: Design documents from `/specs/001-uc01-register-reporter/`
 
@@ -24,7 +24,7 @@ description: "Task list UC-01 Mendaftar Akun Pelapor"
 - [x] T007 Rakit aplikasi `apps/api/src/app.ts` dan `apps/api/src/index.ts` (+ `GET /api/health`)
 - [x] T008 [P] Helper uji Black Box `tests/blackbox/helpers.ts` (API_URL, pembuat data unik, akses DB uji untuk kondisi awal)
 
-## Phase 3: User Story 1 – Pelapor membuat akun (P1) 🎯 MVP
+## Phase 3: User Story 1 – Warga membuat akun (P1) 🎯 MVP
 
 - [x] T009 [US1] Migrasi `apps/api/migrations/001_users.sql` (enum `user_role`, tabel `users`)
 - [x] T010 [P] [US1] Normalisasi nomor HP `apps/api/src/lib/phone.ts`

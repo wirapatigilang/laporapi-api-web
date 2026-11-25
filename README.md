@@ -45,7 +45,7 @@ Kata sandi semua akun: `LaporApi#2026`
 | Operator Polsek Sekadau Hilir | 081100000002 |
 | Petugas Instansi (BPBD) | 081100000003 |
 
-Akun Pelapor dibuat lewat `POST /api/auth/register` (aplikasi Android), dan Pelapor tidak bisa masuk ke web.
+Akun Warga dibuat lewat `POST /api/auth/register` (aplikasi Android), dan Warga tidak bisa masuk ke web.
 
 ## Menjalankan uji Black Box
 

@@ -1,7 +1,7 @@
 # Quickstart: UC-04 Mengirim Laporan
 
 ```bash
-# 1. Daftar dan masuk sebagai Pelapor (kanal android) untuk mendapat token
+# 1. Daftar dan masuk sebagai Warga (kanal android) untuk mendapat token
 curl -X POST http://localhost:3000/api/auth/register -H 'Content-Type: application/json' \
   -d '{"name":"Budi","phoneNumber":"081234567890","password":"rahasia123"}'
 TOKEN=$(curl -s -X POST http://localhost:3000/api/auth/login -H 'Content-Type: application/json' \

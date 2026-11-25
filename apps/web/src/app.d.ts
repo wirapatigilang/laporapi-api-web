@@ -10,7 +10,7 @@ declare global {
 		id: string;
 		name: string;
 		phoneNumber: string;
-		role: 'REPORTER' | 'ADMIN' | 'SECTOR_OPERATOR' | 'AGENCY_OFFICER';
+		role: 'CITIZEN' | 'ADMIN' | 'SECTOR_OPERATOR' | 'AGENCY_OFFICER';
 		policeSector: { id: string; name: string } | null;
 		agency: { id: string; name: string } | null;
 	}

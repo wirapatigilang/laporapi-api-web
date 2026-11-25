@@ -1,4 +1,4 @@
-# Catatan Tinjauan Iterasi 1: UC-01 Mendaftar Akun Pelapor
+# Catatan Tinjauan Iterasi 1: UC-01 Mendaftar Akun Warga
 
 ## 1. Requirements Review (2026-11-24)
 
@@ -22,7 +22,7 @@ Robustness diagram: `iconix/uc01-robustness.png` (draf dari `skripsi/iconix/`, d
 | 1–2 | Boundary Layar Daftar (Android) | Ya |
 | 3 (format) | Control "Periksa kelengkapan dan format data" | Ya |
 | 3 (unik) | Control "Periksa nomor HP dan email belum terdaftar" ↔ Entity User | Ya |
-| 4 | Control "Hash kata sandi dan simpan Pengguna peran Pelapor" → User | Ya |
+| 4 | Control "Hash kata sandi dan simpan Pengguna peran Warga" → User | Ya |
 | 5 | Control "Kirim tanggapan berhasil" → Boundary Layar Masuk | Ya |
 | 3a | Control "Kembalikan pesan galat per kolom" | Ya |
 | 3b | Control "Tolak: nomor HP/email sudah terdaftar" | Ya |

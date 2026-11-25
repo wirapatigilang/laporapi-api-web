@@ -1,25 +1,26 @@
 @startuml
 left to right direction
 title Robustness Diagram UC-02 Masuk ke Sistem
-actor "Pengguna Terdaftar" as usr
+actor "Admin Polres, Operator Polsek, Petugas Instansi" as ptg
+actor "Warga" as wrg
 boundary "Halaman Masuk (web)" as bWeb
 boundary "Layar Masuk (Android)" as bAnd
 control "Normalkan nomor HP dan cari Pengguna" as cCari
 control "Cocokkan kata sandi" as cSandi
 control "Periksa akun aktif" as cAktif
-control "Periksa kanal sesuai peran (Pelapor hanya Android)" as cKanal
+control "Periksa kanal sesuai peran (Warga hanya Android)" as cKanal
 control "Buat token sesi berisi peran" as cToken
 control "Arahkan sesuai peran" as cArah
 control "Tampilkan 'Nomor HP atau kata sandi salah' [3a]" as cErrSalah
 control "Tampilkan 'Akun Anda tidak aktif' [3b]" as cErrNon
-control "Tolak: akun pelapor hanya untuk Android [3c]" as cErrKanal
+control "Tolak: akun warga hanya untuk Android [3c]" as cErrKanal
 entity "User (Pengguna)" as ePengguna
 boundary "Dasbor Laporan (web)" as bDasbor
 boundary "Layar Home (Android)" as bHome
 control "Periksa token pada setiap permintaan" as cTokenCek
 control "Tolak dan minta masuk ulang (token kedaluwarsa)" as cUlang
-usr --> bWeb
-usr --> bAnd
+ptg --> bWeb
+wrg --> bAnd
 bWeb --> cCari
 bAnd --> cCari
 cCari --> ePengguna

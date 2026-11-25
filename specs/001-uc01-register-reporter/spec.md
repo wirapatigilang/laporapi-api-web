@@ -1,4 +1,4 @@
-# Feature Specification: UC-01 Mendaftar Akun Pelapor
+# Feature Specification: UC-01 Mendaftar Akun Warga
 
 **Feature Branch**: `001-uc01-register-reporter`
 
@@ -8,17 +8,17 @@
 
 **Input**: Teks UC-01 dari `use-case-sementara.md` versi 4, FR-01, NFR-02, NFR-05, NFR-08, dan domain model (Pengguna, Peran).
 
-**Use case ICONIX**: UC-01 · **Aktor utama**: Pelapor · **Lapis**: API (dipanggil dari Layar Daftar aplikasi Android)
+**Use case ICONIX**: UC-01 · **Aktor utama**: Warga · **Lapis**: API (dipanggil dari Layar Daftar aplikasi Android)
 
 ## Teks use case (sumber)
 
-**Prasyarat:** Pelapor belum punya akun. **Hasil akhir:** Pengguna baru dengan peran Pelapor tersimpan dan bisa masuk.
+**Prasyarat:** Warga belum punya akun. **Hasil akhir:** Pengguna baru dengan peran Warga tersimpan dan bisa masuk.
 
 Basic course:
-1. Pelapor membuka Layar Daftar pada aplikasi Android dan mengisi nama, nomor HP, dan kata sandi.
-2. Pelapor menekan tombol Daftar.
+1. Warga membuka Layar Daftar pada aplikasi Android dan mengisi nama, nomor HP, dan kata sandi.
+2. Warga menekan tombol Daftar.
 3. Sistem memeriksa kelengkapan dan format data, serta memastikan nomor HP belum terdaftar.
-4. Sistem menyimpan Pengguna baru dengan peran Pelapor dan kata sandi yang sudah di-*hash*.
+4. Sistem menyimpan Pengguna baru dengan peran Warga dan kata sandi yang sudah di-*hash*.
 5. Sistem mengirim tanggapan berhasil, lalu aplikasi Android menampilkan Layar Masuk.
 
 Alternate course:
@@ -37,22 +37,22 @@ Alternate course:
 
 ### Perubahan requirement 2026-11-24
 
-- Keputusan Gilang: masuk memakai nomor HP dan kata sandi, **email tidak dipakai lagi** di seluruh sistem (pendaftaran Pelapor, masuk web dan Android, akun petugas). Akibatnya pada UC-01: kolom email dihapus dari pendaftaran, 3b hanya memeriksa nomor HP dengan pesan "Nomor HP sudah terdaftar", kolom `email` yang tetap dikirim aplikasi lama diabaikan. Kasus uji email (UJ-01.06 dan UJ-01.07 lama) diganti kasus uji batas panjang dan awalan nomor HP.
+- Keputusan Gilang: masuk memakai nomor HP dan kata sandi, **email tidak dipakai lagi** di seluruh sistem (pendaftaran Warga, masuk web dan Android, akun petugas). Akibatnya pada UC-01: kolom email dihapus dari pendaftaran, 3b hanya memeriksa nomor HP dengan pesan "Nomor HP sudah terdaftar", kolom `email` yang tetap dikirim aplikasi lama diabaikan. Kasus uji email (UJ-01.06 dan UJ-01.07 lama) diganti kasus uji batas panjang dan awalan nomor HP.
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - Pelapor membuat akun (Priority: P1)
+### User Story 1 - Warga membuat akun (Priority: P1)
 
 Warga yang belum punya akun mendaftar dari aplikasi Android agar dapat masuk dan mengirim laporan karhutla.
 
-**Why this priority**: Pelapor wajib punya akun sebelum melapor (ASUMSI-4), jadi semua use case Pelapor bergantung pada fitur ini.
+**Why this priority**: Warga wajib punya akun sebelum melapor (ASUMSI-4), jadi semua use case Warga bergantung pada fitur ini.
 
 **Independent Test**: Kirim `POST /api/auth/register` dengan data valid, lalu periksa tanggapan 201 dan bahwa akun dapat dipakai masuk (setelah UC-02 ada) atau bahwa pendaftaran ulang dengan nomor yang sama ditolak 409.
 
 **Acceptance Scenarios** (basic course):
 
-1. **Given** nomor HP belum terdaftar, **When** Pelapor mengirim nama, nomor HP, dan kata sandi yang valid, **Then** sistem menjawab 201 berisi data pengguna dengan peran `REPORTER` tanpa kata sandi, dan kata sandi tersimpan dalam bentuk *hash*.
-2. **Given** kata sandi tepat 8 karakter dan data lain valid, **When** Pelapor mendaftar, **Then** sistem menjawab 201.
+1. **Given** nomor HP belum terdaftar, **When** Warga mengirim nama, nomor HP, dan kata sandi yang valid, **Then** sistem menjawab 201 berisi data pengguna dengan peran `CITIZEN` tanpa kata sandi, dan kata sandi tersimpan dalam bentuk *hash*.
+2. **Given** kata sandi tepat 8 karakter dan data lain valid, **When** Warga mendaftar, **Then** sistem menjawab 201.
 
 ---
 
@@ -60,10 +60,10 @@ Warga yang belum punya akun mendaftar dari aplikasi Android agar dapat masuk dan
 
 **Acceptance Scenarios**:
 
-1. **Given** kata sandi 7 karakter, **When** Pelapor mendaftar, **Then** sistem menjawab 422 dengan pesan pada kolom `password` dan pengguna tidak tersimpan.
-2. **Given** nomor HP berisi huruf, **When** Pelapor mendaftar, **Then** sistem menjawab 422 dengan pesan pada kolom `phoneNumber`.
-3. **Given** nomor HP 9 digit atau diawali selain `08`/`62`/`+62` (misalnya `0215551234`), **When** Pelapor mendaftar, **Then** sistem menjawab 422 dengan pesan pada kolom `phoneNumber`; nomor 10 digit diterima.
-4. **Given** satu atau lebih kolom wajib kosong, **When** Pelapor mendaftar, **Then** sistem menjawab 422 dan setiap kolom yang kosong mendapat pesannya sendiri.
+1. **Given** kata sandi 7 karakter, **When** Warga mendaftar, **Then** sistem menjawab 422 dengan pesan pada kolom `password` dan pengguna tidak tersimpan.
+2. **Given** nomor HP berisi huruf, **When** Warga mendaftar, **Then** sistem menjawab 422 dengan pesan pada kolom `phoneNumber`.
+3. **Given** nomor HP 9 digit atau diawali selain `08`/`62`/`+62` (misalnya `0215551234`), **When** Warga mendaftar, **Then** sistem menjawab 422 dengan pesan pada kolom `phoneNumber`; nomor 10 digit diterima.
+4. **Given** satu atau lebih kolom wajib kosong, **When** Warga mendaftar, **Then** sistem menjawab 422 dan setiap kolom yang kosong mendapat pesannya sendiri.
 
 ---
 
@@ -71,31 +71,31 @@ Warga yang belum punya akun mendaftar dari aplikasi Android agar dapat masuk dan
 
 **Acceptance Scenarios**:
 
-1. **Given** nomor HP sudah dipakai pengguna lain, **When** Pelapor mendaftar dengan nomor itu, **Then** sistem menjawab 409 "Nomor HP sudah terdaftar" dan tidak membuat pengguna baru.
-2. **Given** nomor `08…` sudah terdaftar, **When** Pelapor mendaftar dengan nomor yang sama berawalan `+62…`, **Then** sistem menjawab 409 dengan pesan yang sama.
+1. **Given** nomor HP sudah dipakai pengguna lain, **When** Warga mendaftar dengan nomor itu, **Then** sistem menjawab 409 "Nomor HP sudah terdaftar" dan tidak membuat pengguna baru.
+2. **Given** nomor `08…` sudah terdaftar, **When** Warga mendaftar dengan nomor yang sama berawalan `+62…`, **Then** sistem menjawab 409 dengan pesan yang sama.
 
 ### Edge Cases
 
 - Nomor `+6281234567890` dan `081234567890` dianggap sama (normalisasi), sehingga yang kedua ditolak 409.
 - Kolom `email` yang tetap dikirim diabaikan dan tidak disimpan.
-- Peran tidak dapat dipilih pengirim: kolom `role` pada permintaan diabaikan, peran selalu `REPORTER`.
+- Peran tidak dapat dipilih pengirim: kolom `role` pada permintaan diabaikan, peran selalu `CITIZEN`.
 - Format salah diperiksa lebih dulu daripada keunikan (urutan langkah 3 → 3a sebelum 3b).
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001** (FR-01): Sistem MUST menerima pendaftaran Pelapor dengan nama, nomor HP, dan kata sandi.
+- **FR-001** (FR-01): Sistem MUST menerima pendaftaran Warga dengan nama, nomor HP, dan kata sandi.
 - **FR-002** (FR-01, 3a): Sistem MUST menolak data yang tidak lengkap atau salah format dengan 422 dan pesan bahasa Indonesia per kolom.
 - **FR-003** (FR-01, 3b): Sistem MUST menolak nomor HP yang sudah terdaftar (setelah normalisasi) dengan 409 "Nomor HP sudah terdaftar".
 - **FR-004** (NFR-02): Sistem MUST menyimpan kata sandi sebagai *hash* dan mensyaratkan paling sedikit 8 dan paling banyak 200 karakter.
-- **FR-005**: Sistem MUST memberi peran `REPORTER` dan status aktif pada akun yang dibuat lewat pendaftaran.
+- **FR-005**: Sistem MUST memberi peran `CITIZEN` dan status aktif pada akun yang dibuat lewat pendaftaran.
 - **FR-006** (NFR-05): Tanggapan berhasil MUST tidak memuat kata sandi atau *hash*-nya.
 
 ### Key Entities
 
 - **User (Pengguna)**: nama, nomor HP (unik), *hash* kata sandi, peran, status aktif, waktu dibuat.
-- **Role (Peran)**: `REPORTER`, `ADMIN`, `SECTOR_OPERATOR`, `AGENCY_OFFICER`.
+- **Role (Peran)**: `CITIZEN`, `ADMIN`, `SECTOR_OPERATOR`, `AGENCY_OFFICER`.
 
 ## Success Criteria *(mandatory)*
 

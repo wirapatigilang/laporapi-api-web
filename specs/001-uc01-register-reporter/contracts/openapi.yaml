@@ -1,11 +1,11 @@
 openapi: 3.1.0
 info:
-  title: Lapor Api – UC-01 Mendaftar Akun Pelapor
+  title: Lapor Api – UC-01 Mendaftar Akun Warga
   version: 0.1.0
 paths:
   /api/auth/register:
     post:
-      summary: Pelapor mendaftar akun (UC-01)
+      summary: Warga mendaftar akun (UC-01)
       requestBody:
         required: true
         content:
@@ -19,7 +19,7 @@ paths:
                 password: { type: string, minLength: 8, maxLength: 200 }
       responses:
         "201":
-          description: Akun Pelapor tersimpan (langkah 4–5)
+          description: Akun Warga tersimpan (langkah 4–5)
           content:
             application/json:
               schema:
@@ -50,7 +50,7 @@ components:
         id: { type: string, format: uuid }
         name: { type: string }
         phoneNumber: { type: string }
-        role: { type: string, enum: [REPORTER, ADMIN, SECTOR_OPERATOR, AGENCY_OFFICER] }
+        role: { type: string, enum: [CITIZEN, ADMIN, SECTOR_OPERATOR, AGENCY_OFFICER] }
         isActive: { type: boolean }
         createdAt: { type: string, format: date-time }
     Error:
