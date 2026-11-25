@@ -70,7 +70,9 @@ async function confirmDispatch(tx: SQL, officer: Viewer, incident: LockedInciden
 export const HandlingService = {
   /** UC-11 langkah 2–6 dan alternate 1a, 2a, 2b, 4a, "kapan saja". */
   async update(user: Viewer, reportId: string, body: Record<string, unknown>) {
-    if (user.role !== "AGENCY_OFFICER" && user.role !== "SECTOR_OPERATOR") throw forbidden();
+    // Penanganan Selesai dinyatakan Admin Polres (UC-12), jadi Admin hanya boleh lewat nextStatus RESOLVED.
+    const adminResolving = user.role === "ADMIN" && body.nextStatus === "RESOLVED";
+    if (user.role !== "AGENCY_OFFICER" && user.role !== "SECTOR_OPERATOR" && !adminResolving) throw forbidden();
     const note = typeof body.note === "string" && body.note.trim() ? body.note.trim() : null;
     if (note && note.length > NOTE_MAX) throw validationError({ note: `Catatan maksimal ${NOTE_MAX} karakter` });
     const hasNext = body.nextStatus !== undefined && body.nextStatus !== null;
@@ -81,7 +83,7 @@ export const HandlingService = {
 
     if (hasNext) {
       const next = body.nextStatus as ReportStatus;
-      // Penyelesaian memakai aturan UC-12 (hanya Petugas Instansi yang menerima Penerusan).
+      // Penyelesaian memakai aturan UC-12 (hanya Admin Polres).
       if (next === "RESOLVED" && resolver) {
         const incident = await sql.begin((tx) => lockOrNotFound(tx, reportId));
         if (!ReportStatusRules.canTransitionTo(incident.status, next)) throw transitionError(incident.status, next);

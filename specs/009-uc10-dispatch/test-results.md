@@ -21,3 +21,12 @@ Tanggal: 2026-11-25 · Lingkungan: Bun 1.4.4, ElysiaJS 1.4, SvelteKit 3.4 + Svel
 ## Converge
 
 FR-001–FR-008 punya kode dan kasus uji. Hasil: **converged**.
+
+## Uji ulang setelah amandemen 2026-11-25 (masukan dosen)
+
+| Kode | Masukan | Hasil yang diharapkan | Hasil |
+|---|---|---|---|
+| UJ-10.04 (diubah) | BPBD sudah menerima Penerusan; Admin memilih TNI | Kotak BPBD nonaktif "sudah diteruskan"; hanya TNI ditambahkan; Penerusan ulang BPBD lewat API 409 | Lulus |
+| UJ-10.10 (baru) | Admin menekan Pilih semua, Batalkan semua, Pilih semua, lalu Teruskan | Penghitung "N dari N dipilih" / "0 dari N"; tombol "Teruskan ke N instansi"; N Penerusan; Petugas Ditugaskan | Lulus |
+
+Seluruh rangkaian setelah amandemen: **134/134 lulus** (25 November 2026).

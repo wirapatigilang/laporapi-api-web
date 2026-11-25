@@ -84,7 +84,7 @@ Alternate course:
 - **FR-005** (NFR-03): Nomor HP Warga MUST hanya disertakan untuk Admin Polres dan Operator Polsek.
 - **FR-006** (FR-20, AB-04): Detail MUST memuat jumlah titik panas dalam radius 5 km dan jarak terdekat, tanpa mengubah status.
 - **FR-007** (NFR-10): Kegagalan layanan FIRMS MUST tidak menggagalkan detail; detail memuat keterangan "Data titik panas tidak tersedia".
-- **FR-008**: Dasbor MUST menampilkan peta Leaflet dengan peta dasar OpenStreetMap dan warna penanda per status, serta "Tidak ada laporan" bila daftar kosong.
+- **FR-008**: Dasbor MUST menampilkan peta Leaflet dengan peta dasar citra satelit (Esri World Imagery, dengan label wilayah; pilihan Jalan memakai OpenStreetMap) dan warna penanda per status, serta "Tidak ada laporan" bila daftar kosong.
 
 ### Key Entities
 - **Incident**, **Report**, **StatusHistory**, **User**: sudah ada sejak iterasi 3.
@@ -96,4 +96,8 @@ Alternate course:
 
 ## Assumptions
 - Kunci FIRMS (`FIRMS_MAP_KEY`) diatur di lingkungan produksi; pengujian memakai layanan FIRMS tiruan.
-- Peta dasar OpenStreetMap dimuat dari peladen ubin OSM oleh peramban pengguna.
+- Peta dasar citra satelit Esri World Imagery (dan OpenStreetMap untuk pilihan Jalan) dimuat dari peladen ubin oleh peramban pengguna.
+
+## Amandemen 2026-11-25 (masukan dosen pembimbing)
+
+- Peta dasar diganti dari OpenStreetMap biasa menjadi **citra satelit** agar tutupan lahan (hutan, sawah, kebun, permukiman) terlihat di sekitar titik laporan. Label nama tempat dan batas wilayah ditumpuk di atas citra. Kontrol lapisan di pojok kanan atas memungkinkan beralih ke tampilan Jalan (OpenStreetMap). Berlaku untuk peta Dasbor dan peta Detail Laporan karena keduanya memakai komponen peta yang sama.

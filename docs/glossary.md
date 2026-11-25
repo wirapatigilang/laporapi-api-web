@@ -36,10 +36,10 @@ Padanan istilah domain (skripsi, teks use case, antarmuka) dengan nama dalam kod
 |---|---|---|
 | `RECEIVED` | Laporan Diterima | Sistem |
 | `VERIFIED` | Laporan Diverifikasi | Admin Polres |
-| `REJECTED` | Laporan Ditolak | Admin Polres |
+| `REJECTED` | Laporan Ditolak | Admin Polres (selama Laporan masih aktif) |
 | `ASSIGNED` | Petugas Ditugaskan | Admin Polres (keputusan 24 November 2026) |
 | `IN_PROGRESS` | Penanganan Berlangsung | Petugas Instansi |
-| `RESOLVED` | Penanganan Selesai | Petugas Instansi |
+| `RESOLVED` | Penanganan Selesai | Admin Polres |
 
 Status Petugas Menuju Lokasi (`EN_ROUTE`) tidak dipakai (keputusan 24 November 2026); keberangkatan tim dicatat sebagai `ACTIVITY`.
 

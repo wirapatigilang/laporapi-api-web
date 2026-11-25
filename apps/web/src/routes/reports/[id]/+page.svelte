@@ -12,6 +12,11 @@
 	const role = $derived(data.user.role);
 	const isAdmin = $derived(role === 'ADMIN');
 	const canDecide = $derived(isAdmin && r.status === 'RECEIVED');
+	// Masukan dosen 25 Nov 2026: Admin Polres boleh menolak selama Laporan belum berstatus akhir.
+	const isFinal = $derived(r.status === 'REJECTED' || r.status === 'RESOLVED');
+	const canReject = $derived(isAdmin && !isFinal);
+	// Masukan dosen 25 Nov 2026: Penanganan Selesai dinyatakan Admin Polres.
+	const canResolve = $derived(isAdmin && r.status === 'IN_PROGRESS');
 	const isOperator = $derived(role === 'SECTOR_OPERATOR');
 	const standbyBlocked = $derived(r.status === 'REJECTED' ? 'Laporan sudah ditolak' : r.status === 'RESOLVED' ? 'Penanganan sudah selesai' : null);
 	const isOfficer = $derived(role === 'AGENCY_OFFICER');
@@ -19,7 +24,19 @@
 	const departBlocked = $derived(r.status === 'REJECTED' || r.status === 'RESOLVED');
 	const canDispatch = $derived(isAdmin && ['VERIFIED', 'ASSIGNED', 'IN_PROGRESS'].includes(r.status));
 
-	let confirming = $state<null | 'verify' | 'reject' | 'dispatch' | 'resolve'>(null);
+	let confirming = $state<null | 'verify' | 'reject' | 'dispatch' | 'resolve' | 'start'>(null);
+	const dupNote = $derived(r.duplicates.length ? ` dan ${r.duplicates.length} laporan ganda` : '');
+
+	// Dialog Teruskan ke Instansi: pilih semua dan hitungan pilihan.
+	const sentIds = $derived(new Set<string>((r.dispatches ?? []).map((d: any) => d.agency.id)));
+	const available = $derived(data.agencies.filter((a: any) => !sentIds.has(a.id)));
+	let selected = $state<string[]>([]);
+	const allSelected = $derived(available.length > 0 && available.every((a: any) => selected.includes(a.id)));
+	const toggleAll = () => (selected = allSelected ? [] : available.map((a: any) => a.id));
+	const openDispatch = () => {
+		selected = [];
+		confirming = 'dispatch';
+	};
 	let showPhone = $state(false);
 	let showFieldCheck = $state(false);
 	let busy = $state(false);
@@ -50,6 +67,13 @@
 			? ([[[r.latitude, r.longitude], [r.photoCoordinate.latitude, r.photoCoordinate.longitude]]] as [[number, number], [number, number]][])
 			: []
 	);
+	const AGENCY_TYPE_LABELS: Record<string, string> = {
+		BPBD: 'Penanggulangan bencana',
+		ENVIRONMENT_AGENCY: 'Lingkungan hidup',
+		MANGGALA_AGNI: 'Pengendalian karhutla',
+		FIRE_DEPARTMENT: 'Pemadam kebakaran',
+		MILITARY: 'TNI'
+	};
 </script>
 
 <svelte:head><title>{r.reportNumber} · Lapor Api</title></svelte:head>
@@ -73,10 +97,11 @@
 		<section class="card actions" data-testid="admin-actions" aria-label="Tindakan Admin Polres">
 			<div class="buttons">
 				<button type="button" class="primary" data-testid="verify-button" disabled={!canDecide || busy} onclick={() => (confirming = 'verify')}>Verifikasi</button>
-				<button type="button" class="danger" data-testid="reject-button" disabled={!canDecide || busy} onclick={() => (confirming = 'reject')}>Tolak</button>
+				<button type="button" class="danger" data-testid="reject-button" disabled={!canReject || busy} onclick={() => (confirming = 'reject')}>Tolak</button>
 				<button type="button" class="ghost" data-testid="contact-button" onclick={() => (showPhone = !showPhone)}>Hubungi Warga</button>
 				<button type="button" class="ghost" data-testid="field-check-button" disabled={!canDecide} onclick={() => (showFieldCheck = !showFieldCheck)}>Minta cek lapangan</button>
-				<button type="button" class="primary" data-testid="dispatch-button" disabled={!canDispatch || busy} onclick={() => (confirming = 'dispatch')}>Teruskan ke Instansi</button>
+				<button type="button" class="primary" data-testid="dispatch-button" disabled={!canDispatch || busy} onclick={openDispatch}>Teruskan ke Instansi</button>
+				<button type="button" class="primary" data-testid="resolve-button" disabled={!canResolve || busy} onclick={() => (confirming = 'resolve')}>Nyatakan Selesai</button>
 			</div>
 			{#if showPhone}
 				<p class="contact" data-testid="contact-info">Hubungi {r.reporter.name}:
@@ -116,19 +141,28 @@
 					<button type="submit" name="kind" value="CONFIRMED" class="primary" data-testid="confirm-dispatch-button"
 						disabled={!handlingOpen || !r.myDispatch || r.myDispatch.confirmed || busy}>{r.myDispatch?.confirmed ? 'Tugas sudah dikonfirmasi' : 'Konfirmasi Terima Tugas'}</button>
 					<button type="submit" name="kind" value="DEPARTED" class="ghost" data-testid="depart-button" disabled={!handlingOpen || busy}>Catat Keberangkatan</button>
-					<button type="submit" name="kind" value="IN_PROGRESS" class="primary" data-testid="start-button" disabled={r.status !== 'ASSIGNED' || busy}>Mulai Penanganan</button>
-					<button type="button" class="primary" data-testid="resolve-button" disabled={r.status !== 'IN_PROGRESS' || !r.myDispatch || busy} onclick={() => (confirming = 'resolve')}>Nyatakan Selesai</button>
+					<button type="button" class="primary" data-testid="start-button" disabled={r.status !== 'ASSIGNED' || !r.myDispatch || busy} onclick={() => (confirming = 'start')}>Mulai Penanganan</button>
 				</div>
 			</form>
 		</section>
 	{/if}
+
+	{#snippet transition(next: 'VERIFIED' | 'REJECTED' | 'ASSIGNED' | 'IN_PROGRESS' | 'RESOLVED')}
+		<div class="transition" data-testid="status-transition" aria-label="Perubahan status">
+			<div><small>Status sekarang</small><StatusBadge status={r.status} /></div>
+			<span class="arrow" aria-hidden="true">→</span>
+			<div><small>Status baru</small><StatusBadge status={next} /></div>
+		</div>
+	{/snippet}
 
 	{#if confirming === 'reject'}
 		{@const fields = form?.action === 'reject' ? (form?.fields ?? {}) : {}}
 		{@const values = form?.action === 'reject' ? ((form as any)?.values ?? {}) : {}}
 		<div class="backdrop" role="presentation">
 			<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="reject-title" data-testid="reject-dialog">
-				<h2 id="reject-title">Tolak laporan {r.reportNumber}</h2>
+				<p class="eyebrow danger-text">Ubah status</p>
+				<h2 id="reject-title">Tolak laporan {r.reportNumber}?</h2>
+				{@render transition('REJECTED')}
 				<form method="POST" action="?/reject" use:enhance={submitting} class="stack">
 					<fieldset class="reasons">
 						<legend>Alasan penolakan</legend>
@@ -140,10 +174,14 @@
 					<label for="reject-note">Catatan tambahan <small class="muted">(wajib untuk alasan Lainnya)</small></label>
 					<textarea id="reject-note" name="note" rows="3" maxlength="500">{values.note ?? ''}</textarea>
 					{#if fields.note}<small class="field-error" data-testid="reject-note-error">{fields.note}</small>{/if}
-					{#if r.duplicates.length}<p class="small muted">{r.duplicates.length} laporan ganda ikut ditolak dengan alasan yang sama.</p>{/if}
+					<ul class="effects">
+						<li>Laporan{dupNote} berstatus <strong>Laporan Ditolak</strong> dan tiket kejadian ditutup. Status ini tidak dapat diubah lagi.</li>
+						<li>Warga menerima notifikasi beserta alasan penolakan.</li>
+						{#if r.status !== 'RECEIVED'}<li>Operator Polsek{r.dispatches?.length ? ' dan instansi penerima' : ''} diberi tahu agar penanganan dihentikan.</li>{/if}
+					</ul>
 					<div class="buttons end">
 						<button type="button" class="ghost" data-testid="reject-cancel" onclick={() => (confirming = null)}>Batal</button>
-						<button type="submit" class="primary" data-testid="reject-submit" disabled={busy}>Kirim Penolakan</button>
+						<button type="submit" class="danger-solid" data-testid="reject-submit" disabled={busy}>Ya, tolak laporan</button>
 					</div>
 				</form>
 			</div>
@@ -152,27 +190,48 @@
 
 	{#if confirming === 'dispatch'}
 		{@const fields = form?.action === 'dispatch' ? (form?.fields ?? {}) : {}}
-		{@const sent = new Set((r.dispatches ?? []).map((d: any) => d.agency.id))}
 		<div class="backdrop" role="presentation">
-			<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dispatch-title" data-testid="dispatch-dialog">
-				<h2 id="dispatch-title">Teruskan laporan {r.reportNumber} ke Instansi</h2>
+			<div class="dialog wide" role="dialog" aria-modal="true" aria-labelledby="dispatch-title" data-testid="dispatch-dialog">
+				<p class="eyebrow">{r.status === 'VERIFIED' ? 'Ubah status' : 'Tambah instansi'}</p>
+				<h2 id="dispatch-title">Teruskan laporan {r.reportNumber} ke instansi</h2>
+				{#if r.status === 'VERIFIED'}{@render transition('ASSIGNED')}{/if}
 				<form method="POST" action="?/dispatch" use:enhance={submitting} class="stack">
-					<fieldset class="reasons">
-						<legend>Instansi penerima</legend>
-						{#each data.agencies as a}
-							<label class="radio">
-								<input type="checkbox" name="agencyIds" value={a.id} data-testid="agency-option" />{a.name}
-								{#if sent.has(a.id)}<small class="muted" data-testid="already-dispatched">(sudah diteruskan)</small>{/if}
+					<div class="pick-head">
+						<span id="agency-legend" class="legend-title">Instansi penerima</span>
+						<span class="muted small-inline" data-testid="agency-selected-count">{selected.length} dari {available.length} dipilih</span>
+						<button type="button" class="link" data-testid="select-all-agencies" disabled={available.length === 0} onclick={toggleAll}>
+							{allSelected ? 'Batalkan semua' : 'Pilih semua'}
+						</button>
+					</div>
+					<div class="agency-grid" role="group" aria-labelledby="agency-legend">
+						{#each data.agencies as a (a.id)}
+							{@const already = sentIds.has(a.id)}
+							<label class="agency" class:checked={selected.includes(a.id)} class:sent={already}>
+								<input type="checkbox" name="agencyIds" value={a.id} bind:group={selected} disabled={already} data-testid="agency-option" />
+								<span class="agency-text">
+									<span class="agency-name">{a.name}</span>
+									{#if already}<small class="muted" data-testid="already-dispatched">sudah diteruskan</small>{:else if a.type}<small class="muted">{AGENCY_TYPE_LABELS[a.type] ?? a.type}</small>{/if}
+								</span>
 							</label>
 						{/each}
-					</fieldset>
+					</div>
 					{#if fields.agencyIds}<small class="field-error" data-testid="agency-error">{fields.agencyIds}</small>{/if}
-					<label for="dispatch-note">Catatan <small class="muted">(opsional)</small></label>
-					<textarea id="dispatch-note" name="note" rows="2" maxlength="500"></textarea>
-					{#if r.status !== 'VERIFIED'}<p class="small muted">Status tetap {r.statusLabel}; penambahan instansi dicatat sebagai kegiatan.</p>{/if}
+					<label for="dispatch-note">Catatan untuk instansi <small class="muted">(opsional)</small></label>
+					<textarea id="dispatch-note" name="note" rows="2" maxlength="500" placeholder="Contoh: akses lewat jalan desa, lahan gambut"></textarea>
+					<ul class="effects">
+						{#if r.status === 'VERIFIED'}
+							<li>Laporan{dupNote} berstatus <strong>Petugas Ditugaskan</strong>.</li>
+							<li>Warga menerima notifikasi bahwa petugas sudah ditugaskan.</li>
+						{:else}
+							<li>Status tetap {r.statusLabel}; penambahan instansi dicatat sebagai kegiatan.</li>
+						{/if}
+						<li>Petugas di setiap instansi terpilih menerima notifikasi dan diminta mengonfirmasi.</li>
+					</ul>
 					<div class="buttons end">
 						<button type="button" class="ghost" data-testid="dispatch-cancel" onclick={() => (confirming = null)}>Batal</button>
-						<button type="submit" class="primary" data-testid="dispatch-submit" disabled={busy}>Teruskan</button>
+						<button type="submit" class="primary" data-testid="dispatch-submit" disabled={busy}>
+							{selected.length ? `Teruskan ke ${selected.length} instansi` : 'Teruskan'}
+						</button>
 					</div>
 				</form>
 			</div>
@@ -182,11 +241,41 @@
 	{#if confirming === 'resolve'}
 		<div class="backdrop" role="presentation">
 			<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="resolve-title" data-testid="resolve-dialog">
+				<p class="eyebrow">Ubah status</p>
 				<h2 id="resolve-title">Nyatakan penanganan laporan {r.reportNumber} selesai?</h2>
-				<p>Api sudah padam. Status laporan{r.duplicates.length ? ` dan ${r.duplicates.length} laporan ganda` : ''} menjadi Penanganan Selesai dan tiket kejadian ditutup.</p>
+				{@render transition('RESOLVED')}
+				<ul class="effects">
+					<li>Pastikan api sudah padam berdasarkan laporan petugas di lapangan.</li>
+					<li>Laporan{dupNote} berstatus <strong>Penanganan Selesai</strong> dan tiket kejadian ditutup. Status ini tidak dapat diubah lagi.</li>
+					<li>Warga, Operator Polsek, dan instansi penerima menerima notifikasi.</li>
+				</ul>
 				<form method="POST" action="?/resolve" use:enhance={submitting} class="buttons end">
-					<button type="button" class="ghost" onclick={() => (confirming = null)}>Batal</button>
-					<button type="submit" class="primary" data-testid="resolve-yes" disabled={busy}>Ya</button>
+					<button type="button" class="ghost" data-testid="resolve-cancel" onclick={() => (confirming = null)}>Batal</button>
+					<button type="submit" class="primary" data-testid="resolve-yes" disabled={busy}>Ya, nyatakan selesai</button>
+				</form>
+			</div>
+		</div>
+	{/if}
+
+	{#if confirming === 'start'}
+		<div class="backdrop" role="presentation">
+			<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="start-title" data-testid="start-dialog">
+				<p class="eyebrow">Ubah status</p>
+				<h2 id="start-title">Mulai penanganan laporan {r.reportNumber}?</h2>
+				{@render transition('IN_PROGRESS')}
+				<form method="POST" action="?/handling" use:enhance={submitting} class="stack">
+					<input type="hidden" name="kind" value="IN_PROGRESS" />
+					<label for="start-note">Catatan <small class="muted">(opsional)</small></label>
+					<textarea id="start-note" name="note" rows="2" maxlength="500" placeholder="Contoh: tim tiba, pemadaman dimulai"></textarea>
+					<ul class="effects">
+						<li>Laporan{dupNote} berstatus <strong>Penanganan Berlangsung</strong>.</li>
+						{#if r.myDispatch && !r.myDispatch.confirmed}<li>Penugasan instansi Anda sekaligus dicatat sebagai sudah dikonfirmasi.</li>{/if}
+						<li>Warga dan Admin Polres menerima notifikasi.</li>
+					</ul>
+					<div class="buttons end">
+						<button type="button" class="ghost" data-testid="start-cancel" onclick={() => (confirming = null)}>Batal</button>
+						<button type="submit" class="primary" data-testid="start-yes" disabled={busy}>Ya, mulai penanganan</button>
+					</div>
 				</form>
 			</div>
 		</div>
@@ -195,10 +284,16 @@
 	{#if confirming === 'verify'}
 		<div class="backdrop" role="presentation">
 			<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="verify-title" data-testid="confirm-dialog">
+				<p class="eyebrow">Ubah status</p>
 				<h2 id="verify-title">Verifikasi laporan {r.reportNumber}?</h2>
-				<p>Status laporan{r.duplicates.length ? ` dan ${r.duplicates.length} laporan ganda` : ''} menjadi Laporan Diverifikasi. Warga dan Operator Polsek akan menerima notifikasi.</p>
+				{@render transition('VERIFIED')}
+				<ul class="effects">
+					<li>Laporan dinyatakan valid berdasarkan foto, lokasi, dan petunjuk titik panas.</li>
+					<li>Laporan{dupNote} berstatus <strong>Laporan Diverifikasi</strong>, lalu dapat diteruskan ke instansi.</li>
+					<li>Warga dan Operator Polsek menerima notifikasi.</li>
+				</ul>
 				<form method="POST" action="?/verify" use:enhance={submitting} class="buttons end">
-					<button type="button" class="ghost" onclick={() => (confirming = null)}>Batal</button>
+					<button type="button" class="ghost" data-testid="confirm-cancel" onclick={() => (confirming = null)}>Batal</button>
 					<button type="submit" class="primary" data-testid="confirm-yes" disabled={busy}>Ya, verifikasi</button>
 				</form>
 			</div>
@@ -363,4 +458,27 @@
 	.backdrop { position: fixed; inset: 0; background: rgba(33, 24, 20, 0.45); display: grid; place-items: center; z-index: 2000; padding: 16px; }
 	.dialog { background: #fff; border-radius: 12px; padding: 20px; max-width: 440px; width: 100%; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); }
 	.dialog p { font-size: 14px; color: #5b524d; }
+	.dialog { display: grid; gap: 14px; max-height: calc(100vh - 32px); overflow-y: auto; box-sizing: border-box; }
+	.dialog.wide { max-width: 600px; }
+	.dialog h2 { font-size: 19px; margin: 0; }
+	.eyebrow { margin: 0 0 -8px; font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: #c2240f; }
+	.danger-text { color: #c92a2a; }
+	.transition { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; background: #fff6f1; border: 1px solid #f6dccf; }
+	.transition div { display: grid; gap: 4px; }
+	.transition small { font-size: 11px; color: #8a807a; }
+	.arrow { font-size: 18px; color: #c2240f; font-weight: 700; }
+	.effects { margin: 0; padding: 12px 14px 12px 30px; border-radius: 10px; background: #fbf8f6; font-size: 13px; color: #5a4a41; display: grid; gap: 4px; }
+	button.danger-solid { color: #fff; background: #c92a2a; }
+	button.link { background: none; border: 0; padding: 0; color: #c2240f; font-weight: 700; text-decoration: underline; }
+	.pick-head { display: flex; align-items: center; gap: 10px; }
+	.legend-title { font-weight: 600; }
+	.small-inline { font-size: 12px; margin-left: auto; }
+	.agency-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+	.agency { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1.5px solid #e9e0da; border-radius: 10px; cursor: pointer; background: #fff; }
+	.agency:hover { border-color: #ffb08f; }
+	.agency.checked { border-color: #e5341a; background: #fff6f1; }
+	.agency.sent { cursor: not-allowed; background: #f6f3f1; opacity: 0.75; }
+	.agency input { margin-top: 3px; accent-color: #e5341a; }
+	.agency-text { display: grid; gap: 2px; }
+	.agency-name { font-weight: 600; }
 </style>

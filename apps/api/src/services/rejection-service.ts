@@ -3,8 +3,8 @@
  */
 import { sql } from "../db/client";
 import { validationError, type FieldErrors } from "../lib/errors";
-import { STATUS_LABELS } from "../lib/status";
-import { IncidentCommands } from "../repositories/incident-repository";
+import { ReportStatusRules, STATUS_LABELS } from "../lib/status";
+import { agencyIdsOf, IncidentCommands } from "../repositories/incident-repository";
 import type { Viewer } from "./access";
 import { DashboardStream } from "./dashboard-stream";
 import { NotificationService } from "./notification-service";
@@ -31,7 +31,7 @@ export const RejectionReasons = {
 };
 
 export const RejectionService = {
-  /** UC-08 langkah 3–5 dan alternate 3a, 3b, 4a. */
+  /** UC-08 langkah 3–5 dan alternate 3a, 3b, 4a. Berlaku untuk semua status yang belum akhir. */
   async reject(admin: Viewer, reportId: string, body: Record<string, unknown>) {
     const errors: FieldErrors = {};
     const note = typeof body.note === "string" ? body.note.trim() : "";
@@ -44,7 +44,8 @@ export const RejectionService = {
 
     const result = await sql.begin(async (tx) => {
       const incident = await lockOrNotFound(tx, reportId);
-      if (incident.status !== "RECEIVED") throw await alreadyProcessed(tx, incident);
+      // Admin Polres boleh menolak selama Laporan belum berstatus akhir (masukan dosen 25 Nov 2026).
+      if (ReportStatusRules.isFinal(incident.status)) throw await alreadyProcessed(tx, incident);
       // Alasan disimpan lebih dulu: CHECK reports_rejection_check mensyaratkan alasan pada setiap Laporan Ditolak.
       await tx`UPDATE reports SET rejection_reason_id = ${reason!.id}, rejection_note = ${note || null} WHERE incident_id = ${incident.incidentId}`;
       const members = await IncidentCommands.applyStatus(tx, incident.incidentId, "REJECTED", admin.id, note || null);
@@ -56,9 +57,14 @@ export const RejectionService = {
       await NotificationService.send(tx, await NotificationService.sectorOperators(tx, incident.policeSectorId),
         `Laporan ${incident.primaryReportNumber} ditolak`, `Laporan ditolak Admin Polres (alasan: ${reasonText}). Penyiagaan personel dapat dihentikan.`,
         incident.primaryReportId);
+      // Penolakan setelah diteruskan: Petugas Instansi penerima ikut diberi tahu agar penanganan dihentikan.
+      const agencyOfficers = (await tx`SELECT u.id FROM users u JOIN dispatches d ON d.agency_id = u.agency_id
+        WHERE d.report_id = ${incident.primaryReportId} AND u.is_active AND u.role = 'AGENCY_OFFICER'`).map((r: { id: string }) => r.id);
+      await NotificationService.send(tx, agencyOfficers, `Laporan ${incident.primaryReportNumber} ditolak`,
+        `Laporan ditolak Admin Polres (alasan: ${reasonText}). Penanganan dihentikan.`, incident.primaryReportId);
       return incident;
     });
-    DashboardStream.broadcast({ event: "incident-updated", incidentId: result.incidentId, reportId: result.primaryReportId, policeSectorId: result.policeSectorId });
+    DashboardStream.broadcast({ event: "incident-updated", incidentId: result.incidentId, reportId: result.primaryReportId, policeSectorId: result.policeSectorId, agencyIds: await agencyIdsOf(result.incidentId) });
     return {
       message: "Laporan ditolak",
       report: { id: result.primaryReportId, reportNumber: result.primaryReportNumber, status: "REJECTED", statusLabel: STATUS_LABELS.REJECTED, rejection: { reason: reason!.label, note: note || null } },

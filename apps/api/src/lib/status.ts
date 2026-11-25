@@ -16,7 +16,7 @@ export const STATUS_LABELS: Record<ReportStatus, string> = {
 export const REPORT_STATUSES = Object.keys(STATUS_LABELS) as ReportStatus[];
 export const isReportStatus = (v: unknown): v is ReportStatus => typeof v === "string" && v in STATUS_LABELS;
 
-/** Urutan utama; REJECTED adalah cabang dari RECEIVED. */
+/** Urutan utama; REJECTED adalah cabang dari setiap status yang belum akhir (masukan dosen 25 Nov 2026). */
 const MAIN_LINE: ReportStatus[] = ["RECEIVED", "VERIFIED", "ASSIGNED", "IN_PROGRESS", "RESOLVED"];
 
 export const ReportStatusRules = {
@@ -27,9 +27,9 @@ export const ReportStatusRules = {
     return MAIN_LINE[i + 1] ?? null;
   },
 
-  /** Hanya boleh maju satu tahap; Laporan Diterima juga boleh menjadi Laporan Ditolak. */
+  /** Hanya boleh maju satu tahap; Laporan yang belum berstatus akhir juga boleh menjadi Laporan Ditolak. */
   canTransitionTo(from: ReportStatus, to: ReportStatus): boolean {
-    if (from === "RECEIVED" && to === "REJECTED") return true;
+    if (to === "REJECTED") return !this.isFinal(from);
     return this.next(from) === to;
   },
 

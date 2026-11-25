@@ -17,3 +17,16 @@ Tanggal: 2026-11-25 · Lingkungan: Bun 1.4.4, ElysiaJS 1.4, SvelteKit 3.4 + Svel
 ## Converge
 
 FR-001–FR-005 punya kode dan kasus uji. Hasil: **converged**.
+
+## Uji ulang setelah amandemen 2026-11-25 (masukan dosen)
+
+| Kode | Masukan | Hasil yang diharapkan | Hasil |
+|---|---|---|---|
+| UJ-12.01 (diubah) | Admin Polres menekan Nyatakan Selesai, dialog menampilkan perubahan status, lalu Ya | Semua Laporan Penanganan Selesai; tiket ditutup; Notifikasi Warga (2), Operator, Petugas BPBD; dialog tanpa isian | Lulus |
+| UJ-12.02 (diubah) | Admin pada Laporan Petugas Ditugaskan | Tombol nonaktif; 409 "… penanganan belum berlangsung" | Lulus |
+| UJ-12.04 (diubah) | Petugas Instansi (`/resolve` dan `/status`) | 403; status tetap; tombol tidak tampil | Lulus |
+| UJ-12.05 (diubah) | Admin menyelesaikan lewat `/status`, lalu `/resolve`, `IN_PROGRESS`, keberangkatan, penolakan | 409 tiap permintaan; status tetap Penanganan Selesai | Lulus |
+| UJ-12.06 (diubah) | Admin menyelesaikan; laporan baru 30 m | Kejadian baru | Lulus |
+| UJ-12.07 (diubah) | Admin menyelesaikan Kejadian yang diteruskan ke Manggala Agni; Petugas Manggala mencoba | Petugas 403; Admin 200; Petugas Manggala menerima Notifikasi | Lulus |
+
+Seluruh rangkaian setelah amandemen: **134/134 lulus** (25 November 2026).

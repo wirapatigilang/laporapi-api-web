@@ -99,6 +99,8 @@ describe("UC-11 memperbarui status penanganan", () => {
     expect((await status(report.id, { activity: "CONFIRMED" }, bpbdToken)).status).toBe(200);
     const page = await detailAs(SEED.officer, report.id, "officer-actions");
     await page.getByTestId("start-button").click();
+    await page.getByTestId("start-dialog").waitFor();
+    await page.getByTestId("start-yes").click();
     await page.waitForSelector('[data-testid="report-status"] [data-status="IN_PROGRESS"]');
     expect(await page.getByTestId("action-result").innerText()).toBe("Status menjadi Penanganan Berlangsung");
     expect(await page.getByTestId("start-button").isDisabled()).toBe(true);

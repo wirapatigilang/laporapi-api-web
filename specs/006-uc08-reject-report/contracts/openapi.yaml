@@ -29,7 +29,7 @@ paths:
               example: { message: Laporan ditolak, report: { id: "…", reportNumber: LA-0020, status: REJECTED, statusLabel: Laporan Ditolak, rejection: { reason: Laporan iseng, note: null } } }
         "403": { description: Bukan Admin Polres }
         "404": { description: Laporan tidak ditemukan }
-        "409": { description: "Laporan sudah diproses oleh [nama] pada [waktu]" }
+        "409": { description: "Laporan sudah berstatus akhir (Laporan Ditolak atau Penanganan Selesai): Laporan sudah diproses oleh [nama] pada [waktu]. Sejak amandemen 2026-11-25 penolakan diterima selama Laporan masih aktif" }
         "422": { description: "fields.reasonId 'Pilih alasan penolakan' / 'Alasan penolakan tidak dikenal'; fields.note 'Catatan wajib diisi untuk alasan Lainnya'" }
   /api/reports/{id}:
     get:

@@ -21,3 +21,11 @@ Tanggal: 2026-11-25 · Lingkungan: Bun 1.4.4, ElysiaJS 1.4, SvelteKit 3.4 + Svel
 ## Converge
 
 FR-001–FR-006 punya kode dan kasus uji. Hasil: **converged**.
+
+## Uji ulang setelah amandemen 2026-11-25 (masukan dosen)
+
+| Kode | Masukan | Hasil yang diharapkan | Hasil |
+|---|---|---|---|
+| UJ-11.04 (diubah) | Mulai Penanganan, dialog konfirmasi, lalu Ya | Penanganan Berlangsung setelah konfirmasi; Notifikasi Warga dan Admin | Lulus |
+
+Seluruh rangkaian setelah amandemen: **134/134 lulus** (25 November 2026).

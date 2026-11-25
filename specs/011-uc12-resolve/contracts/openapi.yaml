@@ -3,7 +3,7 @@ info: { title: Lapor Api — UC-12 Menyatakan Penanganan Selesai, version: 0.11.
 paths:
   /api/reports/{id}/resolve:
     post:
-      summary: Menyatakan penanganan selesai dan menutup Kejadian — Petugas Instansi penerima Penerusan
+      summary: Menyatakan penanganan selesai dan menutup Kejadian — Admin Polres (amandemen 2026-11-25)
       security: [{ bearer: [] }]
       parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
       responses:
@@ -12,7 +12,7 @@ paths:
           content:
             application/json:
               example: { message: Penanganan selesai, report: { id: "…", status: RESOLVED, statusLabel: Penanganan Selesai } }
-        "403": { description: Bukan Petugas Instansi, atau Instansinya tidak menerima Penerusan }
+        "403": { description: Bukan Admin Polres }
         "404": { description: Laporan tidak ditemukan }
         "409": { description: "Status bukan Penanganan Berlangsung ('… penanganan belum berlangsung' / 'Penanganan sudah selesai')" }
 components:

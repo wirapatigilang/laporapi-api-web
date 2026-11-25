@@ -67,10 +67,25 @@
 			if (destroyed) return;
 			L = mod.default ?? mod;
 			map = L.map(el, { zoomControl: true }).setView(SEKADAU, 10);
-			L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			// Masukan dosen 25 Nov 2026: peta dasar citra satelit agar hutan, sawah, dan kebun terlihat.
+			const satellite = L.tileLayer(
+				'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+				{ maxZoom: 19, maxNativeZoom: 18, attribution: 'Citra &copy; Esri, Maxar, Earthstar Geographics' }
+			);
+			// Label nama tempat di atas citra, di bawah penanda laporan.
+			const labelPane = map.createPane('labels');
+			labelPane.style.zIndex = '350';
+			labelPane.style.pointerEvents = 'none';
+			const labels = L.tileLayer(
+				'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+				{ maxZoom: 19, maxNativeZoom: 18, pane: 'labels', opacity: 0.9 }
+			);
+			const street = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 				maxZoom: 19,
 				attribution: '&copy; kontributor OpenStreetMap'
-			}).addTo(map);
+			});
+			const satelliteWithLabels = L.layerGroup([satellite, labels]).addTo(map);
+			L.control.layers({ Satelit: satelliteWithLabels, Jalan: street }, undefined, { position: 'topright' }).addTo(map);
 			layer = L.layerGroup().addTo(map);
 			draw();
 			el.dataset.ready = 'true';
