@@ -23,7 +23,7 @@ Robustness diagram: `iconix/uc04-robustness.png` (diperbarui; draf lama di `skri
 
 | Langkah / alternate | Objek | Cocok? |
 |---|---|---|
-| Prasyarat (sudah masuk) | — | **Tidak** → ditambah control "Periksa token dan peran Pelapor (401/403)" |
+| Prasyarat (sudah masuk) | — | **Tidak** → ditambah control "Periksa token dan peran Warga (401/403)" |
 | 3, 3b | Terima data; Periksa clientId ↔ Report | Ya |
 | 4, 4a, 4c | Periksa foto dan keterangan; Tolak foto/keterangan | Ya |
 | 5, 5a–5d | Baca EXIF; Tentukan lokasi; Hitung jarak; Tolak lokasi | Ya |

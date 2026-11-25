@@ -1,4 +1,4 @@
-# Implementation Plan: UC-01 Mendaftar Akun Pelapor
+# Implementation Plan: UC-01 Mendaftar Akun Warga
 
 **Branch**: `001-uc01-register-reporter` | **Date**: 2026-11-24 | **Spec**: [spec.md](spec.md)
 
@@ -6,7 +6,7 @@
 
 ## Summary
 
-Endpoint publik `POST /api/auth/register` untuk Pelapor. `AuthService` memvalidasi format (3a), memeriksa keunikan nomor HP (3b), meng-*hash* kata sandi, dan menyimpan `User` berperan `REPORTER`. Iterasi ini juga membangun fondasi bersama: aplikasi ElysiaJS, koneksi PostgreSQL, migrasi, format galat, dan kerangka uji Black Box.
+Endpoint publik `POST /api/auth/register` untuk Warga. `AuthService` memvalidasi format (3a), memeriksa keunikan nomor HP (3b), meng-*hash* kata sandi, dan menyimpan `User` berperan `CITIZEN`. Iterasi ini juga membangun fondasi bersama: aplikasi ElysiaJS, koneksi PostgreSQL, migrasi, format galat, dan kerangka uji Black Box.
 
 ## Technical Context
 

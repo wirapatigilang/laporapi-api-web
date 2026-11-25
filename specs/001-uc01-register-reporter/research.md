@@ -1,4 +1,4 @@
-# Research: UC-01 Mendaftar Akun Pelapor
+# Research: UC-01 Mendaftar Akun Warga
 
 | Keputusan | Pilihan | Alasan | Alternatif yang ditolak |
 |---|---|---|---|

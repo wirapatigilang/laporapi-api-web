@@ -16,7 +16,7 @@ description: "Task list UC-02 Masuk ke Sistem"
 - [x] T005 Data awal `apps/api/src/db/seed.ts` (7 Polsek, 5 Instansi, akun Admin/Operator/Petugas)
 - [x] T006 Plugin `apps/api/src/plugins/auth-guard.ts` (`verifyToken`, `requireRole`)
 
-## Phase 3: US2 Pelapor masuk lewat API (P1)
+## Phase 3: US2 Warga masuk lewat API (P1)
 - [x] T007 [US2] `AuthService.login`, `issueToken` di `apps/api/src/services/auth-service.ts`
 - [x] T008 [US2] `POST /api/auth/login`, `GET /api/auth/me` di `apps/api/src/routes/auth.ts`
 - [x] T009 [US2] Uji UJ-02.03 di `tests/blackbox/uc02-sign-in.test.ts`

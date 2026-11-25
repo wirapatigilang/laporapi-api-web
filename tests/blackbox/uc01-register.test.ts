@@ -1,16 +1,16 @@
-// Uji Black Box UC-01 Mendaftar Akun Pelapor (spec: specs/001-uc01-register-reporter/spec.md)
+// Uji Black Box UC-01 Mendaftar Akun Warga (spec: specs/001-uc01-register-reporter/spec.md)
 import { describe, expect, test } from "bun:test";
 import { api, db, uniquePhone } from "./helpers";
 
 const valid = () => ({ name: "Budi Santoso", phoneNumber: uniquePhone(), password: "rahasia123" });
 const countByPhone = async (p: string) => Number((await db`SELECT count(*)::int AS n FROM users WHERE phone_number = ${p}`)[0].n);
 
-describe("UC-01 Mendaftar Akun Pelapor", () => {
-  test("UJ-01.01 data lengkap dan valid → 201, peran REPORTER, kata sandi ter-hash", async () => {
+describe("UC-01 Mendaftar Akun Warga", () => {
+  test("UJ-01.01 data lengkap dan valid → 201, peran CITIZEN, kata sandi ter-hash", async () => {
     const data = valid();
     const res = await api("POST", "/api/auth/register", data);
     expect(res.status).toBe(201);
-    expect(res.body.user.role).toBe("REPORTER");
+    expect(res.body.user.role).toBe("CITIZEN");
     expect(res.body.user.phoneNumber).toBe(data.phoneNumber);
     expect(res.body.user.email).toBeUndefined();
     expect(JSON.stringify(res.body)).not.toContain("rahasia123");

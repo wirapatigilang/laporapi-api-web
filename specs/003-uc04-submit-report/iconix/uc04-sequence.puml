@@ -1,7 +1,7 @@
 @startuml
 title Sequence Diagram UC-04 Mengirim Laporan Karhutla
 autonumber
-actor "Pelapor" as pel
+actor "Warga" as pel
 boundary "ReportFormScreen (Android)" as lyr
 control "ReportService" as lap
 control "ExifService" as exif
@@ -11,11 +11,11 @@ control "NotificationService" as ntf
 entity "Report" as lpr
 entity "Incident" as kjd
 entity "StatusHistory" as rws
-note over pel : 1–3. Pelapor memotret, Android mengisi GPS, akurasi, waktu; Pelapor menekan Kirim.
+note over pel : 1–3. Warga memotret, Android mengisi GPS, akurasi, waktu; Warga menekan Kirim.
 pel -> lyr : foto, keterangan, tekan Kirim
 lyr -> lap : POST /api/reports (multipart: photo + data + clientId, Bearer token)
-lap -> lap : requireRole(REPORTER)
-alt tanpa token / bukan Pelapor
+lap -> lap : requireRole(CITIZEN)
+alt tanpa token / bukan Warga
 lap --> lyr : 401 / 403
 end
 lap -> lpr : findByClientId(reporterId, clientId)

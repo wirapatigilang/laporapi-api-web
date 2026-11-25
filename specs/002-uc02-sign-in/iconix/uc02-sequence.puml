@@ -1,12 +1,12 @@
 @startuml
 title Sequence Diagram UC-02 Masuk ke Sistem
 autonumber
-actor "Pengguna Terdaftar" as usr
+actor "Warga / Admin Polres / Operator Polsek / Petugas Instansi" as usr
 boundary "LoginPage (web) / LoginScreen" as hal
 control "AuthService" as auth
 entity "User" as png
 boundary "DashboardPage / HomeScreen" as dsb
-note over usr : 1–2. Pengguna mengisi nomor HP dan kata sandi, lalu menekan Masuk.
+note over usr : 1–2. Aktor (Warga di Android; Admin Polres, Operator Polsek, Petugas Instansi di web) mengisi nomor HP dan kata sandi, lalu menekan Masuk.
 usr -> hal : isi nomor HP dan kata sandi, tekan Masuk
 hal -> auth : POST /api/auth/login {phoneNumber, password, channel}
 note over usr : 3. Sistem mencocokkan data dengan Pengguna yang tersimpan.
@@ -17,8 +17,8 @@ alt 3a. tidak ditemukan / kata sandi salah
 auth --> hal : 401 'Nomor HP atau kata sandi salah'
 else 3b. isActive = false
 auth --> hal : 403 'Akun Anda tidak aktif, hubungi Admin Polres'
-else 3c. role REPORTER dan channel = web
-auth --> hal : 403 'Akun pelapor hanya untuk aplikasi Android'
+else 3c. role CITIZEN dan channel = web
+auth --> hal : 403 'Akun warga hanya untuk aplikasi Android'
 else valid
 note over usr : 4. Sistem membuat token sesi yang memuat Peran.
 auth -> auth : issueToken(userId, role)

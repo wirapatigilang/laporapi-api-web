@@ -1,11 +1,11 @@
 @startuml
-title Sequence Diagram UC-01 Mendaftar Akun Pelapor
+title Sequence Diagram UC-01 Mendaftar Akun Warga
 autonumber
-actor "Pelapor" as pel
+actor "Warga" as pel
 boundary "RegisterScreen (Android)" as lyr
 control "AuthService" as auth
 entity "User" as png
-note over pel : 1–2. Pelapor mengisi nama, nomor HP, kata sandi lalu menekan Daftar.
+note over pel : 1–2. Warga mengisi nama, nomor HP, kata sandi lalu menekan Daftar.
 pel -> lyr : isi data, tekan Daftar
 lyr -> auth : POST /api/auth/register
 note over pel : 3. Sistem memeriksa format dan keunikan.
@@ -18,9 +18,9 @@ png --> auth : user?
 alt 3b. sudah terdaftar
 auth --> lyr : 409 'Nomor HP sudah terdaftar'
 else belum terdaftar
-note over pel : 4. Sistem menyimpan Pengguna peran Pelapor dengan kata sandi ter-hash.
+note over pel : 4. Sistem menyimpan Pengguna peran Warga dengan kata sandi ter-hash.
 auth -> auth : hashPassword(password)
-auth -> png : save(role = REPORTER)
+auth -> png : save(role = CITIZEN)
 note over pel : 5. Sistem mengirim tanggapan berhasil; Android membuka Layar Masuk.
 auth --> lyr : 201 Created
 end

@@ -1,6 +1,6 @@
 // Uji Black Box UC-02 Masuk ke Sistem, lapis web (Halaman Masuk) dengan peramban.
 import { afterAll, describe, expect, test } from "bun:test";
-import { db, newReporter, SEED, SEED_PASSWORD, signTestToken } from "../helpers";
+import { db, newCitizen, SEED, SEED_PASSWORD, signTestToken } from "../helpers";
 import { closeBrowser, openPage, signIn, WEB_URL } from "./browser";
 
 afterAll(closeBrowser);
@@ -35,20 +35,20 @@ describe("UC-02 Masuk ke Sistem (web)", () => {
   });
 
   test("UJ-02.06 akun nonaktif → 'Akun Anda tidak aktif, hubungi Admin Polres'", async () => {
-    const r = await newReporter();
-    // Kondisi awal: akun petugas nonaktif (dibuat dari Pelapor uji yang diubah perannya menjadi Admin).
+    const r = await newCitizen();
+    // Kondisi awal: akun petugas nonaktif (dibuat dari Warga uji yang diubah perannya menjadi Admin).
     await db`UPDATE users SET role = 'ADMIN', is_active = false WHERE phone_number = ${r.phoneNumber}`;
     const page = await openPage();
     await signIn(page, r.phoneNumber, r.password);
     expect(await page.getByTestId("login-error").innerText()).toBe("Akun Anda tidak aktif, hubungi Admin Polres");
   });
 
-  test("UJ-02.07 akun Pelapor masuk ke aplikasi web → ditolak", async () => {
-    const r = await newReporter();
+  test("UJ-02.07 akun Warga masuk ke aplikasi web → ditolak", async () => {
+    const r = await newCitizen();
     const page = await openPage();
     await signIn(page, r.phoneNumber, r.password);
     expect(new URL(page.url()).pathname).toBe("/login");
-    expect(await page.getByTestId("login-error").innerText()).toBe("Akun pelapor hanya dapat dipakai di aplikasi Android");
+    expect(await page.getByTestId("login-error").innerText()).toBe("Akun warga hanya dapat dipakai di aplikasi Android");
   });
 
   test("UJ-02.09 Operator Polsek masuk dengan nomor HP berawalan +62 → Dasbor Laporan wilayahnya", async () => {

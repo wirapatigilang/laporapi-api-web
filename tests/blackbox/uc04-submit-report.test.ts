@@ -1,9 +1,9 @@
 // Uji Black Box UC-04 Mengirim Laporan Karhutla (spec: specs/003-uc04-submit-report/spec.md)
 import { beforeAll, beforeEach, describe, expect, test } from "bun:test";
-import { api, db, loginAs, newReporter, SEED } from "./helpers";
+import { api, db, loginAs, newCitizen, SEED } from "./helpers";
 import { freshPoint, jpegWithGps, jpegWithoutGps, NANGA_MAHAP, north, PONTIANAK, reportForm } from "./fixtures";
 
-let reporter: Awaited<ReturnType<typeof newReporter>>;
+let reporter: Awaited<ReturnType<typeof newCitizen>>;
 let adminToken: string;
 let operatorToken: string; // Operator Polsek Sekadau Hilir
 
@@ -13,7 +13,7 @@ const notifiedFor = async (token: string, reportId: string) =>
   (await api("GET", "/api/notifications", undefined, token)).body.notifications.filter((n: any) => n.reportId === reportId).length;
 
 beforeAll(async () => {
-  reporter = await newReporter();
+  reporter = await newCitizen();
   adminToken = await loginAs(SEED.admin);
   operatorToken = await loginAs(SEED.operator);
 });
@@ -215,7 +215,7 @@ describe("UC-04 laporan ganda (7, 7a, 3a) — tabel keputusan R1–R4", () => {
   test("UJ-04.15 R1: 50 m dari laporan utama, tiket terbuka → laporan ganda, tanpa Notifikasi baru", async () => {
     const p = freshPoint();
     const primary = await primaryAt(p);
-    const other = await newReporter();
+    const other = await newCitizen();
     const res = await submit(reportForm({ device: north(p, 50) }), other.token);
     expect(res.status).toBe(201);
     expect(res.body.report.isDuplicate).toBe(true);
@@ -262,7 +262,7 @@ describe("UC-04 laporan ganda (7, 7a, 3a) — tabel keputusan R1–R4", () => {
     expect(res.body.report.incidentId).toBe(primary.incidentId);
   });
 
-  test("UJ-04.20 Pelapor yang sama mengirim lagi 20 m dari laporan pertamanya → digabung, tidak ditolak", async () => {
+  test("UJ-04.20 Warga yang sama mengirim lagi 20 m dari laporan pertamanya → digabung, tidak ditolak", async () => {
     const p = freshPoint();
     const primary = await primaryAt(p);
     const res = await submit(reportForm({ device: north(p, 20) }));

@@ -4,7 +4,7 @@
 
 ## Summary
 
-`POST /api/reports` (multipart) untuk Pelapor dan `GET /api/notifications`. Alur: periksa token → `clientId` (3b) → validasi foto/keterangan/koordinat (4a, 4c) → baca EXIF dan tentukan lokasi (5, 5a–5d) → cari Kecamatan dengan *point-in-polygon* dan Polsek (6, 6a, 6b) → dalam satu transaksi berkunci: cari Kejadian terbuka ≤ 50 m (7, 7a), buat nomor, simpan Laporan/Kejadian/Riwayat Status (8) → Notifikasi (9) → tanggapan (10).
+`POST /api/reports` (multipart) untuk Warga dan `GET /api/notifications`. Alur: periksa token → `clientId` (3b) → validasi foto/keterangan/koordinat (4a, 4c) → baca EXIF dan tentukan lokasi (5, 5a–5d) → cari Kecamatan dengan *point-in-polygon* dan Polsek (6, 6a, 6b) → dalam satu transaksi berkunci: cari Kejadian terbuka ≤ 50 m (7, 7a), buat nomor, simpan Laporan/Kejadian/Riwayat Status (8) → Notifikasi (9) → tanggapan (10).
 
 ## Technical Context
 

@@ -7,7 +7,8 @@ Padanan istilah domain (skripsi, teks use case, antarmuka) dengan nama dalam kod
 | Istilah domain | Identifier kode | Tabel basis data | Catatan |
 |---|---|---|---|
 | Pengguna | `User` | `users` | |
-| Peran | `Role` | kolom `users.role` | `REPORTER` (Pelapor), `ADMIN` (Admin Polres), `SECTOR_OPERATOR` (Operator Polsek), `AGENCY_OFFICER` (Petugas Instansi) |
+| Peran | `Role` | kolom `users.role` | `CITIZEN` (Warga), `ADMIN` (Admin Polres), `SECTOR_OPERATOR` (Operator Polsek), `AGENCY_OFFICER` (Petugas Instansi) |
+| Warga (masyarakat, sebelum 25 November 2026 bernama Pelapor) | peran `CITIZEN` | `users.role = 'CITIZEN'` | Pada Laporan, Warga pengirimnya tetap disebut `reporterId` (kolom `reports.reporter_id`) karena menyatakan hubungan "yang melaporkan" |
 | Polsek | `PoliceSector` | `police_sectors` | |
 | Kecamatan | `District` | `districts` | batas wilayah GeoJSON (`boundary`) |
 | Instansi | `Agency` | `agencies` | |

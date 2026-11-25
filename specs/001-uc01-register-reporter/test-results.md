@@ -1,10 +1,10 @@
-# Hasil Black Box Testing: UC-01 Mendaftar Akun Pelapor
+# Hasil Black Box Testing: UC-01 Mendaftar Akun Warga
 
 Tanggal: 2026-11-24 · Lingkungan: Bun 1.4.4, ElysiaJS 1.4.32, PostgreSQL 16.15 (basis data uji `lapor_api_test`) · Alat: `bun test` mengirim permintaan HTTP ke API (`tests/blackbox/uc01-register.test.ts`).
 
 | Kode | Skenario (spec) | Teknik | Masukan | Hasil yang diharapkan | Hasil aktual | Status |
 |---|---|---|---|---|---|---|
-| UJ-01.01 | US1-1 | UC | Data lengkap dan valid | 201; peran `REPORTER`; kata sandi ter-*hash* (Argon2id), tidak ada di tanggapan | Sesuai | Lulus |
+| UJ-01.01 | US1-1 | UC | Data lengkap dan valid | 201; peran `CITIZEN`; kata sandi ter-*hash* (Argon2id), tidak ada di tanggapan | Sesuai | Lulus |
 | UJ-01.02 | US2-1 | BVA | Kata sandi 7 karakter | 422, pesan di `password`, tidak tersimpan | Sesuai | Lulus |
 | UJ-01.03 | US1-2 | BVA | Kata sandi 8 karakter | 201 | Sesuai | Lulus |
 | UJ-01.04 | US2-2 | EP | Nomor HP berisi huruf | 422, pesan di `phoneNumber` | Sesuai | Lulus |
@@ -22,3 +22,7 @@ Tanggal: 2026-11-24 · Lingkungan: Bun 1.4.4, ElysiaJS 1.4.32, PostgreSQL 16.15 
 ## Converge
 
 `/speckit.converge` (mengikuti `templates/commands/converge.md`): semua FR-001–FR-006 punya kode dan kasus uji; tidak ada tugas yang ditambahkan. Hasil: **converged**.
+
+## Uji ulang 25 November 2026 (aktor Pelapor menjadi Warga, peran `CITIZEN`)
+
+Seluruh uji Black Box dijalankan ulang setelah migrasi `005_rename_reporter_role.sql`: 54 dari 54 lulus (UC-01, UC-02 API dan web, UC-04).

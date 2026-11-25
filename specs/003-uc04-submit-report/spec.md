@@ -8,17 +8,17 @@
 
 **Input**: Teks UC-04 (use case v4), FR-05 – FR-14, NFR-01, NFR-05, NFR-06, aturan bisnis 1, 5, 6, 10, 11, 12, domain model (Report, Incident, StatusHistory, District, PoliceSector, Notification), Tabel 3.6 (tabel keputusan laporan ganda).
 
-**Use case ICONIX**: UC-04 · **Aktor utama**: Pelapor · **Aktor pendukung**: Admin Polres, Operator Polsek (penerima Notifikasi) · **Lapis**: API (dipanggil Layar Isi Laporan aplikasi Android)
+**Use case ICONIX**: UC-04 · **Aktor utama**: Warga · **Aktor pendukung**: Admin Polres, Operator Polsek (penerima Notifikasi) · **Lapis**: API (dipanggil Layar Isi Laporan aplikasi Android)
 
 ## Teks use case (sumber, versi 4)
 
-**Prasyarat:** Pelapor sudah masuk (UC-02). GPS dan kamera ponsel aktif.
+**Prasyarat:** Warga sudah masuk (UC-02). GPS dan kamera ponsel aktif.
 **Hasil akhir:** Laporan tersimpan dengan status Laporan Diterima, Polsek wilayah yang sesuai, dan hasil pembandingan koordinat foto, atau dikaitkan ke Kejadian yang sudah ada, dan Notifikasi terkirim.
 
 Basic course:
-1. Pelapor menekan tombol LAPOR pada Layar Home, mengambil foto titik api, lalu masuk ke Layar Isi Laporan.
-2. Aplikasi Android mengisi koordinat GPS perangkat, akurasi GPS, dan waktu lapor secara otomatis. Pelapor boleh menulis keterangan (maksimal 300 karakter). Tidak ada pilihan kategori laporan.
-3. Pelapor menekan tombol Kirim. Aplikasi Android mengirim berkas foto asli beserta metadata EXIF-nya, data Laporan, dan nomor unik perangkat (`clientId`) ke API.
+1. Warga menekan tombol LAPOR pada Layar Home, mengambil foto titik api, lalu masuk ke Layar Isi Laporan.
+2. Aplikasi Android mengisi koordinat GPS perangkat, akurasi GPS, dan waktu lapor secara otomatis. Warga boleh menulis keterangan (maksimal 300 karakter). Tidak ada pilihan kategori laporan.
+3. Warga menekan tombol Kirim. Aplikasi Android mengirim berkas foto asli beserta metadata EXIF-nya, data Laporan, dan nomor unik perangkat (`clientId`) ke API.
 4. Sistem memeriksa bahwa foto ada dan bertipe gambar, dan keterangan tidak lebih dari 300 karakter.
 5. Sistem membaca tag GPS EXIF dari foto, mengubahnya ke derajat desimal, lalu menghitung jarak antara koordinat foto dan koordinat GPS perangkat dengan formula Haversine. Jaraknya tidak lebih dari 50 meter, sehingga Sistem menyimpan koordinat foto dan jaraknya tanpa tanda selisih lokasi. Koordinat GPS perangkat tetap menjadi lokasi Laporan.
 6. Sistem mencari Kecamatan yang batas wilayahnya memuat koordinat Laporan. Kecamatan ditemukan, sehingga lokasi berada di Kabupaten Sekadau, dan Polsek wilayah diambil dari Kecamatan tersebut.
@@ -40,7 +40,7 @@ Alternate course: 3a (laporan berulang digabung lewat aturan 50 m), 3b (kirim ul
 - Q: Bentuk kiriman? → A: `multipart/form-data`: `photo` (berkas), `deviceLat`, `deviceLng`, `gpsAccuracy` (meter), `reportedAt` (ISO 8601), `description`, `clientId`. [SEPAKATI]
 - Q: Tipe gambar yang diterima dan ukuran maksimal? → A: JPEG, PNG, WebP, HEIC, diperiksa dari isi berkas (bukan hanya nama/MIME); maksimal 10 MB. Berkas lebih besar ditolak 422 "Ukuran foto maksimal 10 MB".
 - Q: `reportedAt` tidak dikirim atau tidak valid? → A: Bila tidak dikirim, dipakai waktu diterima server; bila formatnya salah, 422. Waktu lapor asli dipertahankan untuk kiriman ulang dari draf (3b).
-- Q: `clientId` unik untuk siapa? → A: Unik per Pelapor (pasangan Pelapor + `clientId`). `clientId` boleh kosong (tanpa perlindungan kirim ulang).
+- Q: `clientId` unik untuk siapa? → A: Unik per Warga (pasangan Warga + `clientId`). `clientId` boleh kosong (tanpa perlindungan kirim ulang).
 - Q: Koordinat perangkat setengah (hanya lintang) atau di luar rentang? → A: 422 pada kolom terkait; koordinat perangkat harus lengkap atau tidak dikirim sama sekali.
 - Q: Notifikasi push ke Android/web? → A: Iterasi ini menyimpan Notifikasi di basis data dan menyediakan `GET /api/notifications` untuk pengguna yang masuk. Pengiriman push (FCM) dan siaran ke dasbor (SSE) menyusul (UC-06 dan kesepakatan dengan Android). [SEPAKATI]
 - Q: Riwayat Status laporan ganda? → A: Laporan ganda mendapat satu Riwayat Status jenis `STATUS` dengan status laporan utama dan catatan "Tergabung dengan laporan LA-xxxx".
@@ -48,12 +48,12 @@ Alternate course: 3a (laporan berulang digabung lewat aturan 50 m), 3b (kirim ul
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - Pelapor mengirim laporan baru (Priority: P1) 🎯
+### User Story 1 - Warga mengirim laporan baru (Priority: P1) 🎯
 
-**Independent Test**: Pelapor yang sudah masuk mengirim foto ber-EXIF dengan koordinat di Kabupaten Sekadau; periksa 201, status `RECEIVED`, Kejadian baru, Riwayat Status pertama, dan Notifikasi Admin Polres dan Operator Polsek wilayah.
+**Independent Test**: Warga yang sudah masuk mengirim foto ber-EXIF dengan koordinat di Kabupaten Sekadau; periksa 201, status `RECEIVED`, Kejadian baru, Riwayat Status pertama, dan Notifikasi Admin Polres dan Operator Polsek wilayah.
 
 **Acceptance Scenarios**:
-1. **Given** Pelapor sudah masuk, koordinat perangkat di Kecamatan Sekadau Hilir, EXIF 20 m dari koordinat perangkat, tidak ada Kejadian terbuka di sekitar, **When** mengirim laporan, **Then** 201 dengan nomor laporan `LA-…`, status `RECEIVED`, Polsek Sekadau Hilir, Kejadian baru dengan laporan ini sebagai laporan utama, satu Riwayat Status `RECEIVED`, dan Notifikasi tersimpan untuk semua Admin Polres dan Operator Polsek Sekadau Hilir (tidak untuk Operator Polsek lain).
+1. **Given** Warga sudah masuk, koordinat perangkat di Kecamatan Sekadau Hilir, EXIF 20 m dari koordinat perangkat, tidak ada Kejadian terbuka di sekitar, **When** mengirim laporan, **Then** 201 dengan nomor laporan `LA-…`, status `RECEIVED`, Polsek Sekadau Hilir, Kejadian baru dengan laporan ini sebagai laporan utama, satu Riwayat Status `RECEIVED`, dan Notifikasi tersimpan untuk semua Admin Polres dan Operator Polsek Sekadau Hilir (tidak untuk Operator Polsek lain).
 2. **Given** keterangan tepat 300 karakter, **When** mengirim, **Then** 201.
 3. **Given** keterangan kosong, **When** mengirim, **Then** 201 (keterangan opsional).
 
@@ -91,11 +91,11 @@ Alternate course: 3a (laporan berulang digabung lewat aturan 50 m), 3b (kirim ul
 3. **Given** 51 m, tiket terbuka (R3), **Then** 201, Kejadian baru.
 4. **Given** 51 m, tiket tertutup (R4), **Then** 201, Kejadian baru.
 5. **Given** 49 m, tiket terbuka, **Then** laporan ganda.
-6. **Given** Pelapor yang sama mengirim lagi 20 m dari laporan pertamanya (3a), **Then** diterima sebagai laporan ganda, tidak ditolak.
+6. **Given** Warga yang sama mengirim lagi 20 m dari laporan pertamanya (3a), **Then** diterima sebagai laporan ganda, tidak ditolak.
 7. **Given** Kejadian terbuka sudah berumur 3 hari, laporan baru 20 m, **Then** tetap laporan ganda (umur tiket tidak membatasi).
 
 ### User Story 7 - Kirim ulang dari draf (P2) — 3b
-1. **Given** Laporan dengan `clientId` X sudah diterima, **When** Pelapor yang sama mengirim lagi dengan `clientId` X, **Then** 200 berisi Laporan yang sama, jumlah Laporan tidak bertambah.
+1. **Given** Laporan dengan `clientId` X sudah diterima, **When** Warga yang sama mengirim lagi dengan `clientId` X, **Then** 200 berisi Laporan yang sama, jumlah Laporan tidak bertambah.
 
 ### User Story 8 - Hak akses (P1) — prasyarat
 1. **Given** tanpa token, **Then** 401.
@@ -117,15 +117,15 @@ Alternate course: 3a (laporan berulang digabung lewat aturan 50 m), 3b (kirim ul
 - **FR-005** (FR-07, FR-10): Sistem MUST menentukan Kecamatan dengan uji titik di dalam poligon; di luar semua Kecamatan → 422 dengan nomor 110 dan tidak disimpan; Polsek dari Kecamatan, atau tanda "Polsek belum ditentukan".
 - **FR-006** (FR-11): Sistem MUST mengaitkan Laporan ke Kejadian terbuka terdekat yang laporan utamanya ≤ 50 m, tanpa melihat umur tiket atau pengirim, tanpa Notifikasi baru, dengan status mengikuti laporan utama.
 - **FR-007** (FR-12): Selain itu Sistem MUST menyimpan Laporan berstatus `RECEIVED` dengan nomor unik, membuat Kejadian baru, dan mencatat Riwayat Status pertama.
-- **FR-008** (FR-13): Sistem MUST mengembalikan Laporan lama (200) untuk `clientId` yang sama dari Pelapor yang sama.
+- **FR-008** (FR-13): Sistem MUST mengembalikan Laporan lama (200) untuk `clientId` yang sama dari Warga yang sama.
 - **FR-009** (FR-14): Sistem MUST membuat Notifikasi untuk semua Admin Polres aktif dan Operator Polsek wilayah untuk Laporan baru (bukan laporan ganda); hanya Admin Polres bila Polsek belum ditentukan.
-- **FR-010** (NFR-01): Hanya peran `REPORTER` yang boleh mengirim Laporan.
-- **FR-011** (FR-31): Setiap Riwayat Status mencatat waktu dan pengubah (Pelapor untuk status awal).
+- **FR-010** (NFR-01): Hanya peran `CITIZEN` yang boleh mengirim Laporan.
+- **FR-011** (FR-31): Setiap Riwayat Status mencatat waktu dan pengubah (Warga untuk status awal).
 - **FR-012**: Sistem MUST menyediakan `GET /api/notifications` berisi Notifikasi milik pengguna yang masuk.
 
 ### Key Entities
 - **District (Kecamatan)**: nama, kode wilayah, batas wilayah GeoJSON, Polsek (boleh kosong).
-- **Report (Laporan)**: nomor laporan, `clientId`, Pelapor, Kejadian, berkas foto, koordinat perangkat, akurasi GPS, koordinat foto, sumber lokasi, jarak dan tanda selisih lokasi, Kecamatan, Polsek, waktu lapor, waktu diterima, keterangan, status saat ini.
+- **Report (Laporan)**: nomor laporan, `clientId`, Warga, Kejadian, berkas foto, koordinat perangkat, akurasi GPS, koordinat foto, sumber lokasi, jarak dan tanda selisih lokasi, Kecamatan, Polsek, waktu lapor, waktu diterima, keterangan, status saat ini.
 - **Incident (Kejadian)**: laporan utama, terbuka/tertutup, waktu dibuka, waktu ditutup.
 - **StatusHistory (Riwayat Status)**: Laporan, jenis `STATUS`/`ACTIVITY`, status, pengubah, waktu, catatan.
 - **Notification (Notifikasi)**: penerima, Laporan, judul, isi, waktu, sudah dibaca.

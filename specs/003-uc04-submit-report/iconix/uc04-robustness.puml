@@ -1,9 +1,9 @@
 @startuml
 left to right direction
 title Robustness Diagram UC-04 Mengirim Laporan Karhutla
-actor "Pelapor" as pel
+actor "Warga" as pel
 boundary "Layar Isi Laporan (Android)" as bIsi
-control "Periksa token dan peran Pelapor (401/403)" as cToken
+control "Periksa token dan peran Warga (401/403)" as cToken
 control "Terima foto, koordinat, akurasi, waktu lapor, keterangan, clientId" as cTerima
 control "Periksa clientId sudah pernah diterima (kirim ulang draf) [3b]" as cIdKlien
 control "Periksa foto bertipe gambar dan keterangan ≤ 300 karakter" as cValid

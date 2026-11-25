@@ -1,4 +1,4 @@
-# Specification Quality Checklist: UC-01 Mendaftar Akun Pelapor
+# Specification Quality Checklist: UC-01 Mendaftar Akun Warga
 
 **Purpose**: Memeriksa kelengkapan spec sebelum perencanaan (keluaran `/speckit.specify`)
 **Created**: 2026-11-24

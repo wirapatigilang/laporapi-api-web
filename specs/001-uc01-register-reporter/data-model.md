@@ -1,4 +1,4 @@
-# Data Model: UC-01 Mendaftar Akun Pelapor
+# Data Model: UC-01 Mendaftar Akun Warga
 
 Class diagram tumbuh per iterasi. Iterasi 1 hanya mengimplementasikan entitas yang disentuh UC-01.
 
@@ -12,7 +12,7 @@ Class diagram tumbuh per iterasi. Iterasi 1 hanya mengimplementasikan entitas ya
 | `name` | `name` | varchar(100) | wajib, 2–100 karakter |
 | `phoneNumber` | `phone_number` | varchar(20), UNIQUE | wajib, dinormalisasi `08…` |
 | `passwordHash` | `password_hash` | text | Argon2id |
-| `role` | `role` | enum `user_role` | `REPORTER`, `ADMIN`, `SECTOR_OPERATOR`, `AGENCY_OFFICER`; pendaftaran selalu `REPORTER` |
+| `role` | `role` | enum `user_role` | `CITIZEN`, `ADMIN`, `SECTOR_OPERATOR`, `AGENCY_OFFICER`; pendaftaran selalu `CITIZEN` |
 | `isActive` | `is_active` | boolean | default `true` |
 | `createdAt` | `created_at` | timestamptz | default `now()` |
 
@@ -26,7 +26,7 @@ Atribut `policeSectorId` dan `agencyId` pada class diagram belum dibuat; ditamba
 | `AuthService` | `validateRegistration(input): FieldErrors` | `validateFormat(data)` |
 | `UserRepository` | `findByPhoneNumber(phone): User?` | `findByPhoneNumber(phone)` |
 | `AuthService` | `hashPassword(password): string` | `hashPassword(password)` |
-| `UserRepository` | `create(user): User` | `save(role = REPORTER)` |
+| `UserRepository` | `create(user): User` | `save(role = CITIZEN)` |
 
 Catatan: pada class diagram draf, operasi akses data ditulis pada entitas `User`; di implementasi dipisah ke `UserRepository` agar entitas tetap data murni. Perbedaan ini dicatat di CDR.
 

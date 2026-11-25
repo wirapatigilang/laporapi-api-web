@@ -29,7 +29,7 @@ paths:
                   expiresAt: { type: string, format: date-time }
                   user: { $ref: "#/components/schemas/SessionUser" }
         "401": { description: "3a Nomor HP atau kata sandi salah (code INVALID_CREDENTIALS)" }
-        "403": { description: "3b ACCOUNT_INACTIVE 'Akun Anda tidak aktif, hubungi Admin Polres' / 3c CHANNEL_NOT_ALLOWED 'Akun pelapor hanya dapat dipakai di aplikasi Android'" }
+        "403": { description: "3b ACCOUNT_INACTIVE 'Akun Anda tidak aktif, hubungi Admin Polres' / 3c CHANNEL_NOT_ALLOWED 'Akun warga hanya dapat dipakai di aplikasi Android'" }
         "422": { description: "Kolom wajib kosong atau channel tidak dikenal (VALIDATION_ERROR)" }
   /api/auth/me:
     get:
@@ -55,6 +55,6 @@ components:
         id: { type: string, format: uuid }
         name: { type: string }
         phoneNumber: { type: string }
-        role: { type: string, enum: [REPORTER, ADMIN, SECTOR_OPERATOR, AGENCY_OFFICER] }
+        role: { type: string, enum: [CITIZEN, ADMIN, SECTOR_OPERATOR, AGENCY_OFFICER] }
         policeSector: { type: [object, "null"], properties: { id: { type: string }, name: { type: string } } }
         agency: { type: [object, "null"], properties: { id: { type: string }, name: { type: string } } }

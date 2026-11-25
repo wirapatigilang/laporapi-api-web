@@ -5,9 +5,9 @@ import { tokenTtlSeconds } from "../config";
 
 export type Channel = "web" | "android";
 
-/** Penanda kanal: Pelapor hanya boleh masuk dari aplikasi Android (UC-02 3c). */
+/** Penanda kanal: Warga hanya boleh masuk dari aplikasi Android (UC-02 3c). */
 export function canSignInFrom(user: Pick<User, "role">, channel: Channel): boolean {
-  return !(user.role === "REPORTER" && channel === "web");
+  return !(user.role === "CITIZEN" && channel === "web");
 }
 
 type SignToken = (payload: Record<string, string | number>) => Promise<string>;
@@ -50,7 +50,7 @@ export const AuthService = {
     return Bun.password.hash(password, { algorithm: "argon2id" });
   },
 
-  /** UC-01 Mendaftar Akun Pelapor. */
+  /** UC-01 Mendaftar Akun Warga. */
   async register(body: Record<string, unknown>): Promise<PublicUser> {
     const { input, errors } = this.validateRegistration(body);
     if (Object.keys(errors).length > 0) throw validationError(errors); // 3a
@@ -62,7 +62,7 @@ export const AuthService = {
       name: input.name,
       phoneNumber: input.phoneNumber,
       passwordHash: await this.hashPassword(input.password),
-      role: "REPORTER",
+      role: "CITIZEN",
     });
     return toPublicUser(user);
   },
@@ -95,7 +95,7 @@ export const AuthService = {
     if (!user || !(await this.verifyPassword(user, password))) throw invalid; // 3a
     if (!user.isActive) throw new ApiError(403, "ACCOUNT_INACTIVE", "Akun Anda tidak aktif, hubungi Admin Polres"); // 3b
     if (!canSignInFrom(user, channel as Channel)) {
-      throw new ApiError(403, "CHANNEL_NOT_ALLOWED", "Akun pelapor hanya dapat dipakai di aplikasi Android"); // 3c
+      throw new ApiError(403, "CHANNEL_NOT_ALLOWED", "Akun warga hanya dapat dipakai di aplikasi Android"); // 3c
     }
 
     const { token, expiresAt } = await this.issueToken(sign, user); // langkah 4

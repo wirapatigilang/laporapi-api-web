@@ -1,6 +1,6 @@
 import { sql } from "../db/client";
 
-export type Role = "REPORTER" | "ADMIN" | "SECTOR_OPERATOR" | "AGENCY_OFFICER";
+export type Role = "CITIZEN" | "ADMIN" | "SECTOR_OPERATOR" | "AGENCY_OFFICER";
 
 export interface User {
   id: string;

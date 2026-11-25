@@ -6,11 +6,11 @@ Tanggal: 2026-11-24 · Lingkungan: Bun 1.4.4, ElysiaJS 1.4.32, SvelteKit 3.4 + S
 |---|---|---|---|---|---|---|
 | UJ-02.01 | Web | US1-1 | UC | Admin Polres, data benar | Diarahkan ke Dasbor Laporan | Lulus |
 | UJ-02.02 | Web | US1-2 | EP | Petugas Instansi (BPBD), data benar | Dasbor Laporan menyebut BPBD Kabupaten Sekadau | Lulus |
-| UJ-02.03 | API | US2-1 | EP | Pelapor, kanal `android` | 200, token berperan `REPORTER` | Lulus |
+| UJ-02.03 | API | US2-1 | EP | Warga, kanal `android` | 200, token berperan `CITIZEN` | Lulus |
 | UJ-02.04 | Web | US3-1 | EP | Kata sandi salah | "Nomor HP atau kata sandi salah" | Lulus |
 | UJ-02.05 | Web | US3-2 | EP | Nomor HP tidak terdaftar | Pesan sama dengan UJ-02.04 | Lulus |
 | UJ-02.06 | Web | US3-3 | EP | Akun nonaktif, kata sandi benar | "Akun Anda tidak aktif, hubungi Admin Polres" | Lulus |
-| UJ-02.07 | Web | US3-4 | EP | Akun Pelapor di Halaman Masuk web | "Akun pelapor hanya dapat dipakai di aplikasi Android" | Lulus |
+| UJ-02.07 | Web | US3-4 | EP | Akun Warga di Halaman Masuk web | "Akun warga hanya dapat dipakai di aplikasi Android" | Lulus |
 | UJ-02.08 | API | US4-1 | EP | Token kedaluwarsa | 401 `TOKEN_EXPIRED` "Sesi berakhir, silakan masuk kembali" | Lulus |
 | UJ-02.09 | Web | US1-3 | EP | Operator Polsek masuk dengan `+62…` (akun tersimpan `08…`) | Dasbor wilayah Polsek Sekadau Hilir | Lulus |
 | UJ-02.10 | API | US3-5 | EP | Tanpa penanda kanal | 422 pada `channel` | Lulus |
@@ -35,3 +35,7 @@ Tanggal: 2026-11-24 · Lingkungan: Bun 1.4.4, ElysiaJS 1.4.32, SvelteKit 3.4 + S
 ## Converge
 
 Semua FR-001–FR-008 punya kode dan kasus uji. Tiga tugas perbaikan ditambahkan ke `tasks.md` (T017–T019) dan selesai. Hasil akhir: **converged**.
+
+## Uji ulang 25 November 2026 (aktor Pelapor menjadi Warga, peran `CITIZEN`)
+
+Seluruh uji Black Box dijalankan ulang setelah migrasi `005_rename_reporter_role.sql`: 54 dari 54 lulus (UC-01, UC-02 API dan web, UC-04).

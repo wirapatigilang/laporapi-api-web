@@ -5,7 +5,7 @@ info:
 paths:
   /api/reports:
     post:
-      summary: Pelapor mengirim Laporan karhutla (UC-04)
+      summary: Warga mengirim Laporan karhutla (UC-04)
       security: [{ bearer: [] }]
       requestBody:
         required: true
@@ -42,7 +42,7 @@ paths:
                   message: { type: string }
                   report: { $ref: "#/components/schemas/SubmittedReport" }
         "401": { description: Belum masuk / token kedaluwarsa }
-        "403": { description: Bukan peran REPORTER }
+        "403": { description: Bukan peran CITIZEN }
         "422":
           description: >
             VALIDATION_ERROR (4a "Foto wajib dilampirkan", 4c batas 300 karakter, foto > 10 MB, koordinat/reportedAt tidak valid),

@@ -37,9 +37,9 @@ export const SEED = {
   officer: "081100000003",
 };
 
-/** Mendaftarkan Pelapor baru lewat API lalu masuk (kanal android); mengembalikan token. */
-export async function newReporter() {
-  const data = { name: "Pelapor Uji", phoneNumber: uniquePhone(), password: "rahasia123" };
+/** Mendaftarkan Warga baru lewat API lalu masuk (kanal android); mengembalikan token. */
+export async function newCitizen() {
+  const data = { name: "Warga Uji", phoneNumber: uniquePhone(), password: "rahasia123" };
   await api("POST", "/api/auth/register", data);
   const res = await api("POST", "/api/auth/login", { phoneNumber: data.phoneNumber, password: data.password, channel: "android" });
   return { ...data, token: res.body.token as string, id: res.body.user?.id as string };
