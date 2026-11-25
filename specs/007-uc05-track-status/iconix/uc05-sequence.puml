@@ -1,0 +1,30 @@
+@startuml
+title Sequence Diagram UC-05 Memantau Status Laporan
+autonumber
+actor "Warga" as pel
+boundary "HistoryScreen / ReportDetailScreen (Android)" as lyr
+control "ReportService" as lap
+entity "Report" as lpr
+entity "StatusHistory" as rws
+entity "Incident" as kjd
+note over pel : 1. Warga membuka Layar Riwayat.
+pel -> lyr : buka Layar Riwayat
+lyr -> lap : GET /api/reports/mine?status=
+lap -> lpr : listByReporter(reporterId, status?)
+lap --> lyr : reports[] (kosong bila 1a)
+note over pel : 2. Warga menyaring berdasarkan status (permintaan yang sama dengan parameter status).
+note over pel : 3. Warga memilih satu Laporan.
+pel -> lyr : pilih Laporan
+lyr -> lap : GET /api/reports/:id
+lap -> lpr : isOwnedBy(reporterId)
+alt 3b. bukan milik Warga
+lap --> lyr : 403 forbidden
+else milik Warga
+lap -> rws : listByReport(reportId) + actor name
+lap -> kjd : primaryReport() [3c]
+lap --> lyr : detail: status, history, officer name, rejection reason [3a]
+end
+lyr --> pel : tampilkan Detail Laporan
+note over pel : 4. Saat status berubah, Sistem mengirim Notifikasi; membukanya menjalankan langkah 3.
+note across : Notifikasi dikirim oleh NotificationService dari UC-07, UC-08, UC-10, UC-11, UC-12 melalui PushGateway.
+@enduml

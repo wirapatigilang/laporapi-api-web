@@ -1,0 +1,39 @@
+openapi: 3.1.0
+info: { title: Lapor Api — UC-05 Memantau Status Laporan, version: 0.7.0 }
+paths:
+  /api/reports/mine:
+    get:
+      summary: Daftar Laporan milik Warga (terbaru lebih dulu)
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [ALL, RECEIVED, VERIFIED, REJECTED, ASSIGNED, IN_PROGRESS, RESOLVED] } }
+      responses:
+        "200":
+          description: Berhasil (kosong bila belum pernah melapor)
+          content:
+            application/json:
+              example: { reports: [{ id: "…", reportNumber: LA-0031, reportedAt: "2026-11-25T03:02:00Z", receivedAt: "2026-11-25T03:02:05Z", district: { name: Sekadau Hilir }, photoUrl: "/api/reports/…/photo", status: VERIFIED, statusLabel: Laporan Diverifikasi, isDuplicate: false, primaryReportNumber: null }] }
+        "403": { description: Bukan Warga }
+        "422": { description: "Status tidak dikenal (fields.status)" }
+  /api/reports/{id}:
+    get:
+      summary: Detail Laporan; untuk Warga berbentuk ringkas (tanpa data pelapor lain, titik panas, posisi tim)
+      security: [{ bearer: [] }]
+      responses:
+        "200":
+          description: Bentuk Warga
+          content:
+            application/json:
+              example:
+                report: { id: "…", reportNumber: LA-0031, status: REJECTED, statusLabel: Laporan Ditolak, photoUrl: "/api/reports/…/photo", latitude: 0.0312, longitude: 110.95, district: { name: Sekadau Hilir }, policeSector: { name: Polsek Sekadau Hilir }, reportedAt: "…", receivedAt: "…", description: null, isDuplicate: true, primaryReportNumber: LA-0030, duplicateNote: "Tergabung dengan laporan #LA-0030", rejection: { code: PRANK, reason: Laporan iseng, note: null }, history: [{ status: RECEIVED, statusLabel: Laporan Diterima, actorName: Warga, note: null, createdAt: "…" }] }
+                hotspots: null
+        "403": { description: Laporan milik Warga lain }
+  /api/notifications/{id}/read:
+    post:
+      summary: Menandai Notifikasi sudah dibaca dan mengembalikan reportId untuk membuka detail
+      security: [{ bearer: [] }]
+      responses:
+        "200": { description: "{ notification: { id, reportId, title, body, isRead: true, createdAt } }" }
+        "404": { description: Notifikasi tidak ada atau milik orang lain }
+components:
+  securitySchemes: { bearer: { type: http, scheme: bearer } }

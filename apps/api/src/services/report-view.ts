@@ -9,6 +9,7 @@ import { ACTIVITY_LABELS } from "../lib/activity";
 import { STATUS_LABELS, isReportStatus } from "../lib/status";
 import { IncidentQueries, type IncidentFilter, type IncidentRow, type IncidentScope } from "../repositories/incident-repository";
 import { ReportRepository, type ReportRow } from "../repositories/report-repository";
+import { citizenDetail } from "./citizen-view";
 import { canView, forbidden, notFound, type Viewer } from "./access";
 import { FirmsClient } from "./firms-client";
 import { roundForDisplay } from "./geo";
@@ -133,6 +134,7 @@ export const registerDetailExtender = (e: DetailExtender) => extenders.push(e);
 /** UC-06 langkah 4: detail untuk petugas. */
 export async function getDetail(viewer: Viewer, id: string) {
   const report = await findViewableReport(viewer, id);
+  if (viewer.role === "CITIZEN") return citizenDetail(report); // UC-05 langkah 3
   const [reporter] = await sql`SELECT name, phone_number AS "phoneNumber" FROM users WHERE id = ${report.reporterId}`;
   const duplicates = await sql`SELECT r.id, r.report_number AS "reportNumber", r.reported_at AS "reportedAt",
       r.current_status AS status, u.name AS "reporterName"
@@ -142,7 +144,7 @@ export async function getDetail(viewer: Viewer, id: string) {
   const showPhone = viewer.role === "ADMIN" || viewer.role === "SECTOR_OPERATOR"; // NFR-03
   const [incident] = await sql`SELECT is_open AS "isOpen", opened_at AS "openedAt", closed_at AS "closedAt" FROM incidents WHERE id = ${report.incidentId}`;
   const isPrimary = report.primaryReportId === report.id;
-  const hotspots = viewer.role === "CITIZEN" ? null : await FirmsClient.hintFor({ latitude: report.latitude, longitude: report.longitude });
+  const hotspots = await FirmsClient.hintFor({ latitude: report.latitude, longitude: report.longitude });
   const extra = Object.assign({}, ...(await Promise.all(extenders.map((e) => e(viewer, report)))));
   return {
     report: {

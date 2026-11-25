@@ -41,6 +41,13 @@ export const NotificationService = {
     );
   },
 
+  /** UC-05 langkah 4: Warga membuka Notifikasi (ditandai sudah dibaca) lalu menuju Detail Laporan. */
+  async markRead(userId: string, id: string) {
+    const rows = await sql`UPDATE notifications SET is_read = true WHERE id = ${id} AND recipient_id = ${userId}
+      RETURNING id, report_id AS "reportId", title, body, is_read AS "isRead", created_at AS "createdAt"`;
+    return rows[0] ?? null;
+  },
+
   async listFor(userId: string) {
     return sql`SELECT id, report_id AS "reportId", title, body, is_read AS "isRead", created_at AS "createdAt"
       FROM notifications WHERE recipient_id = ${userId} ORDER BY created_at DESC LIMIT 100`;

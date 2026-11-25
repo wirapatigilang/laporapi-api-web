@@ -43,7 +43,7 @@ export const VerificationService = {
       const title = `Laporan ${incident.primaryReportNumber} diverifikasi`;
       for (const m of members) {
         await NotificationService.send(tx, [m.reporterId], `Laporan ${m.reportNumber} diverifikasi`,
-          "Laporan Anda sudah diverifikasi Admin Polres dan segera diteruskan ke instansi penanganan.", m.id);
+          `Laporan Anda sudah diverifikasi oleh ${admin.name} dan segera diteruskan ke instansi penanganan.`, m.id);
       }
       await NotificationService.send(tx, await NotificationService.sectorOperators(tx, incident.policeSectorId), title,
         `Laporan di wilayah Anda sudah diverifikasi oleh ${admin.name}.`, incident.primaryReportId);

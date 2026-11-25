@@ -1,0 +1,43 @@
+@startuml
+left to right direction
+title Robustness Diagram UC-05 Memantau Status Laporan
+actor "Warga" as pel
+boundary "Layar Riwayat (Android)" as bRiwayat
+boundary "Layar Detail Laporan (Android)" as bDetail
+boundary "Layar Notifikasi (Android)" as bNotif
+control "Ambil Laporan milik Warga, urut terbaru" as cDaftar
+control "Saring berdasarkan status" as cSaring
+control "Kembalikan daftar kosong [1a]" as cKosong
+control "Periksa Laporan milik Warga [3b]" as cMilik
+control "Susun detail: status, Riwayat Status, nama petugas, alasan penolakan, laporan utama" as cDetail
+control "Tolak: tidak diizinkan" as cErrIzin
+control "Ambil Notifikasi Warga" as cNotif
+entity "Report (Laporan)" as eLaporan
+entity "Incident (Kejadian)" as eKejadian
+entity "StatusHistory (Riwayat Status)" as eRiwayat
+entity "RejectionReason (Alasan Penolakan)" as eAlasan
+entity "User (petugas)" as ePengguna
+entity "Notification (Notifikasi)" as eNotif
+pel --> bRiwayat
+pel --> bDetail
+pel --> bNotif
+bRiwayat --> cDaftar
+cDaftar --> eLaporan
+bRiwayat --> cSaring
+cSaring --> eLaporan
+cDaftar --> cKosong
+cKosong --> bRiwayat
+bDetail --> cMilik
+bNotif --> cMilik : buka notifikasi
+cMilik --> cDetail
+cMilik --> cErrIzin
+cErrIzin --> bDetail
+cDetail --> eLaporan
+cDetail --> eKejadian
+cDetail --> eRiwayat
+cDetail --> eAlasan
+cDetail --> ePengguna
+cDetail --> bDetail
+bNotif --> cNotif
+cNotif --> eNotif
+@enduml
