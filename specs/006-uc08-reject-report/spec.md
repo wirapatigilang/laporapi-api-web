@@ -99,3 +99,8 @@ Alternate course:
 - Bila Laporan sudah diteruskan, Petugas Instansi penerima Penerusan menerima Notifikasi "Laporan ditolak Admin Polres (alasan: …). Penanganan dihentikan."
 - Dialog Tolak menampilkan perubahan status (status sekarang → Laporan Ditolak) dan akibatnya sebelum Admin menekan "Ya, tolak laporan".
 - Kasus uji UJ-08.08 diubah: menolak Laporan Diverifikasi → 200 Laporan Ditolak; menolak lagi Laporan yang sudah Ditolak → 409.
+
+## Amandemen 2026-11-26 (status Laporan Ditutup, UC-13)
+
+- Alternate 1b dibaca: Laporan Penanganan Selesai, Laporan Ditutup, atau Laporan Ditolak tidak dapat ditolak (409 "Laporan sudah diproses"). Laporan yang kembali ke Penanganan Berlangsung karena Warga menolak penutupan kembali aktif dan dapat ditolak.
+- Uji ulang: kasus status akhir UC-08 dengan Laporan Ditutup.

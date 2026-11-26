@@ -39,7 +39,10 @@ Padanan istilah domain (skripsi, teks use case, antarmuka) dengan nama dalam kod
 | `REJECTED` | Laporan Ditolak | Admin Polres (selama Laporan masih aktif) |
 | `ASSIGNED` | Petugas Ditugaskan | Admin Polres (keputusan 24 November 2026) |
 | `IN_PROGRESS` | Penanganan Berlangsung | Petugas Instansi |
-| `RESOLVED` | Penanganan Selesai | Admin Polres |
+| `RESOLVED` | Penanganan Selesai | Admin Polres; menunggu Warga menutup (UC-13) |
+| `CLOSED` | Laporan Ditutup | Warga pembuat laporan utama, atau Sistem 3 × 24 jam setelah `RESOLVED` (UC-13, keputusan 26 November 2026) |
+
+Status akhir: `REJECTED` dan `CLOSED`. Warga yang menolak penutupan (Api Belum Padam) mengembalikan `RESOLVED` ke `IN_PROGRESS`. Istilah UC-13: Menutup Laporan = `close`, Menolak Penutupan = `rejectClosure` (`POST /api/reports/:id/reject-closure`), batas penutupan otomatis = `autoCloseAt`, waktu penyelesaian = `resolvedAt` (`reports.resolved_at`), penjadwal = `AutoCloseJob`.
 
 Status Petugas Menuju Lokasi (`EN_ROUTE`) tidak dipakai (keputusan 24 November 2026); keberangkatan tim dicatat sebagai `ACTIVITY`.
 

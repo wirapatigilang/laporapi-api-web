@@ -77,3 +77,10 @@ Alternate course:
 ## Assumptions
 - Layar Riwayat, Detail Laporan, dan Notifikasi dibangun di aplikasi Android (Khoirul); iterasi ini menyediakan API-nya.
 - UJ-05.04 disiapkan lewat basis data uji sampai UC-10 tersedia, lalu diuji ulang di iterasi 9.
+
+## Amandemen 2026-11-26 (status Laporan Ditutup, UC-13)
+
+- Langkah 4 ditambah UC-13 sebagai pemicu Notifikasi. Alternate baru **3d**: Laporan Penanganan Selesai menampilkan tombol Tutup Laporan dan Api Belum Padam serta batas penutupan otomatis.
+- Filter `status` menerima `CLOSED`. Daftar dan detail menambah `autoCloseAt` (hanya untuk `RESOLVED`) dan `canClose` (Warga pemilik laporan utama dan status `RESOLVED`).
+- Riwayat yang dilihat Warga memuat entri berpengubah "Sistem" untuk penutupan otomatis.
+- Uji ulang: UJ-05.02 (filter `CLOSED`), UJ-05.04.

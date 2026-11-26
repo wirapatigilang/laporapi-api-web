@@ -1,0 +1,52 @@
+@startuml
+title Sequence Diagram UC-13 Menutup Laporan
+autonumber
+actor "Warga" as wrg
+boundary "ReportDetailScreen (Android)" as lyr
+actor "AutoCloseJob" as jdw
+control "ClosureService" as tup
+entity "Report" as lpr
+entity "Incident" as kjd
+entity "StatusHistory" as rws
+control "NotificationService" as ntf
+note over wrg : 1–3. Warga membuka Laporan Penanganan Selesai, menekan Tutup Laporan, lalu Ya, tutup laporan. 2c: Batal menutup dialog.
+wrg -> lyr : tekan Tutup Laporan, Ya
+lyr -> tup : POST /api/reports/:id/close
+note over wrg : 4. Sistem memeriksa peran, kepemilikan, laporan utama, dan status.
+alt 4d. role bukan CITIZEN / 4a. bukan milik Warga
+tup --> lyr : 403 forbidden
+end
+tup -> kjd : primaryReportId == reportId?
+alt 4b. laporan ganda
+tup --> lyr : 409 'Status laporan ganda mengikuti laporan utama'
+end
+tup -> lpr : currentStatus == RESOLVED?
+alt 4c. bukan Penanganan Selesai
+tup --> lyr : 409 belum dinyatakan selesai / sudah ditutup
+else boleh
+note over wrg : 5–6. Status Laporan dan laporan ganda menjadi Laporan Ditutup; Admin Polres diberi Notifikasi.
+tup -> kjd : applyStatus(CLOSED, citizen)
+tup -> rws : record(STATUS, CLOSED, citizen)
+tup -> ntf : send(admins, 'Laporan ditutup oleh Warga')
+tup --> lyr : 200 updated report
+end
+note over wrg : 2a. Warga menekan Api Belum Padam dan mengisi alasan (pemeriksaan 4a–4d sama seperti di atas).
+lyr -> tup : POST /api/reports/:id/reject-closure {note}
+tup -> tup : validateNote(note)
+alt 2b. alasan kosong atau > 300 karakter
+tup --> lyr : 422 'Alasan wajib diisi, paling banyak 300 karakter'
+else alasan sah
+tup -> kjd : applyStatus(IN_PROGRESS, citizen)
+tup -> kjd : reopen()
+tup -> rws : record(STATUS, IN_PROGRESS, citizen, note)
+tup -> ntf : send(admins + operators + dispatched officers, 'api belum padam', note)
+tup --> lyr : 200 updated report
+end
+note over wrg : 3a. Penjadwal (setiap menit, juga sebelum Laporan dibaca) menutup Laporan yang 3 × 24 jam tidak ditanggapi.
+jdw -> tup : autoCloseExpired(now)
+tup -> lpr : listResolvedBefore(now − 72 jam)
+tup -> kjd : applyStatus(CLOSED, system)
+tup -> rws : record(STATUS, CLOSED, null, 'Ditutup otomatis setelah 3 hari')
+tup -> ntf : send(reporter + admins, 'Laporan ditutup otomatis')
+lyr --> wrg : tampilkan Laporan Ditutup
+@enduml
