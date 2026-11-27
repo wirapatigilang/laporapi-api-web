@@ -22,6 +22,7 @@
 	const isOfficer = $derived(role === 'AGENCY_OFFICER');
 	const handlingOpen = $derived(r.status === 'ASSIGNED' || r.status === 'IN_PROGRESS');
 	const departBlocked = $derived(r.status === 'REJECTED' || r.status === 'RESOLVED');
+	const confirmedCount = $derived((r.dispatches ?? []).filter((d: { state: string }) => d.state === 'CONFIRMED').length);
 	const canDispatch = $derived(isAdmin && ['VERIFIED', 'ASSIGNED', 'IN_PROGRESS'].includes(r.status));
 
 	let confirming = $state<null | 'verify' | 'reject' | 'dispatch' | 'resolve' | 'start'>(null);
@@ -371,13 +372,29 @@
 
 			{#if r.dispatches?.length}
 				<div class="card" data-testid="dispatches">
-					<h2>Instansi penerima {#if r.isOverdue}<span class="tag overdue" data-testid="detail-overdue">belum direspons</span>{/if}</h2>
-					<ul class="plain">
+					<div class="dispatch-head">
+						<h2>Instansi penerima {#if r.isOverdue}<span class="tag overdue" data-testid="detail-overdue">belum direspons</span>{/if}</h2>
+						<span class="dispatch-count" data-testid="dispatch-summary">{confirmedCount} dari {r.dispatches.length} dikonfirmasi</span>
+					</div>
+					<div class="dispatch-progress" role="progressbar" aria-label="Instansi yang sudah mengonfirmasi" aria-valuemin="0" aria-valuemax={r.dispatches.length} aria-valuenow={confirmedCount}>
+						<span style={`width: ${(confirmedCount / r.dispatches.length) * 100}%`}></span>
+					</div>
+					<ul class="dispatch-list">
 						{#each r.dispatches as d}
-							<li data-testid="dispatch-item" data-state={d.state}>
-								<strong>{d.agency.name}</strong>
-								<span class="tag" class:waiting={d.state === 'WAITING'} class:confirmed={d.state === 'CONFIRMED'} data-testid="dispatch-state">{d.stateLabel}</span>
-								<small class="muted">diteruskan {formatDateTime(d.dispatchedAt)}{d.confirmedAt ? ` · dikonfirmasi ${formatDateTime(d.confirmedAt)}${d.confirmedBy ? ` oleh ${d.confirmedBy}` : ''}` : ''}</small>
+							<li data-testid="dispatch-item" data-state={d.state} class:is-confirmed={d.state === 'CONFIRMED'}>
+								<span class="dispatch-dot" aria-hidden="true"></span>
+								<div class="dispatch-body">
+									<div class="dispatch-top">
+										<strong class="dispatch-name">{d.agency.name}</strong>
+										<span class="tag" class:waiting={d.state === 'WAITING'} class:confirmed={d.state === 'CONFIRMED'} data-testid="dispatch-state">{d.stateLabel}</span>
+									</div>
+									<dl class="dispatch-meta">
+										<dt>Diteruskan</dt><dd>{formatDateTime(d.dispatchedAt)}</dd>
+										{#if d.confirmedAt}
+											<dt>Dikonfirmasi</dt><dd>{formatDateTime(d.confirmedAt)}{#if d.confirmedBy}<span class="muted">{` oleh ${d.confirmedBy}`}</span>{/if}</dd>
+										{/if}
+									</dl>
+								</div>
 							</li>
 						{/each}
 					</ul>
@@ -476,8 +493,6 @@
 	.tag.waiting { background: #fff3bf; color: #8a5a00; }
 	.tag.confirmed { background: #d3f9d8; color: #2b8a3e; }
 	.tag.overdue { background: #ffe3e3; color: #c92a2a; margin-left: 6px; }
-	.plain { list-style: none; padding: 0; display: grid; gap: 8px; }
-	.plain li { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 	.blocked { align-self: center; color: #c92a2a; font-size: 14px; font-weight: 600; }
 	.reasons { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; }
 	.reasons legend { font-weight: 600; margin-bottom: 4px; }
@@ -512,4 +527,21 @@
 	.agency input { margin-top: 3px; accent-color: #e5341a; }
 	.agency-text { display: grid; gap: 2px; }
 	.agency-name { font-weight: 600; }
+	.dispatch-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+	.dispatch-head h2 { margin: 0; }
+	.dispatch-count { font-size: 13px; font-weight: 600; color: #5b524d; }
+	.dispatch-progress { height: 6px; border-radius: 3px; background: #fff3bf; margin: 10px 0 4px; overflow: hidden; }
+	.dispatch-progress span { display: block; height: 100%; background: #2b8a3e; border-radius: 3px; }
+	.dispatch-list { list-style: none; margin: 0; padding: 0; }
+	.dispatch-list li { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid #f3e7e1; }
+	.dispatch-list li:first-child { border-top: 0; }
+	.dispatch-dot { flex: none; width: 10px; height: 10px; margin-top: 6px; border-radius: 50%; background: #f0b429; box-shadow: 0 0 0 3px #fff3bf; }
+	.dispatch-list li.is-confirmed .dispatch-dot { background: #2b8a3e; box-shadow: 0 0 0 3px #d3f9d8; }
+	.dispatch-body { flex: 1; min-width: 0; display: grid; gap: 4px; }
+	.dispatch-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+	.dispatch-name { font-size: 14px; flex: 1; min-width: 0; }
+	.dispatch-top .tag { flex: none; white-space: nowrap; }
+	.dispatch-meta { display: grid; grid-template-columns: max-content 1fr; gap: 2px 10px; margin: 0; font-size: 12px; color: #5b524d; }
+	.dispatch-meta dt { color: #8a807a; }
+	.dispatch-meta dd { margin: 0; }
 </style>
