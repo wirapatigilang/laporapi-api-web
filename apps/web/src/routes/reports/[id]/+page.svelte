@@ -2,7 +2,8 @@
 	import AppHeader from '#lib/components/AppHeader.svelte';
 	import LeafletMap, { type MapPoint } from '#lib/components/LeafletMap.svelte';
 	import StatusBadge from '#lib/components/StatusBadge.svelte';
-	import { formatCoord, formatDateTime, formatMeters } from '#lib/status.js';
+	import { formatCoord, formatDateTime, formatMeters, STATUS_COLORS, type ReportStatus } from '#lib/status.js';
+	import { ROLE_LABELS } from '#lib/roles.js';
 	import { enhance } from '$app/forms';
 	import type { PageProps } from './$types';
 
@@ -23,6 +24,7 @@
 	const handlingOpen = $derived(r.status === 'ASSIGNED' || r.status === 'IN_PROGRESS');
 	const departBlocked = $derived(r.status === 'REJECTED' || r.status === 'RESOLVED');
 	const confirmedCount = $derived((r.dispatches ?? []).filter((d: { state: string }) => d.state === 'CONFIRMED').length);
+	const lastStatusIndex = $derived(r.history.findLastIndex((e: { type: string }) => e.type === 'STATUS'));
 	const canDispatch = $derived(isAdmin && ['VERIFIED', 'ASSIGNED', 'IN_PROGRESS'].includes(r.status));
 
 	let confirming = $state<null | 'verify' | 'reject' | 'dispatch' | 'resolve' | 'start'>(null);
@@ -318,30 +320,44 @@
 	{/if}
 
 	<div class="grid">
-		<section class="card">
-			<img class="photo" src={`/reports/${r.id}/photo`} alt={`Foto laporan ${r.reportNumber}`} data-testid="report-photo" />
-			<dl class="facts" data-testid="report-facts">
-				<dt>Waktu lapor</dt><dd data-testid="reported-at">{formatDateTime(r.reportedAt)}</dd>
-				<dt>Diterima sistem</dt><dd>{formatDateTime(r.receivedAt)}</dd>
-				<dt>Kecamatan</dt><dd data-testid="district">{r.district.name}</dd>
-				<dt>Polsek wilayah</dt><dd>{r.policeSector?.name ?? r.policeSectorNote}</dd>
-				<dt>Koordinat laporan</dt><dd data-testid="coordinate">{formatCoord(r)} <small>({r.locationSource === 'PHOTO' ? 'koordinat foto' : 'GPS perangkat'})</small></dd>
-				<dt>Akurasi GPS</dt><dd data-testid="gps-accuracy">{r.gpsAccuracy === null ? '–' : `± ${formatMeters(r.gpsAccuracy)}`}</dd>
-				<dt>Koordinat foto (EXIF)</dt>
-				<dd data-testid="photo-coordinate">
-					{#if r.photoCoordinate}{formatCoord(r.photoCoordinate)}{:else}{r.photoCoordinateNote}{/if}
-					{#if r.hasLocationMismatch}
-						<span class="flag" data-testid="mismatch-flag">{r.locationMismatchNote}: {formatMeters(r.locationMismatchMeters)}</span>
-					{:else if r.locationMismatchMeters !== null}
-						<small>(selisih {formatMeters(r.locationMismatchMeters)})</small>
+		<div class="main-col">
+			<section class="card">
+				<img class="photo" src={`/reports/${r.id}/photo`} alt={`Foto laporan ${r.reportNumber}`} data-testid="report-photo" />
+				<dl class="facts" data-testid="report-facts">
+					<dt>Waktu lapor</dt><dd data-testid="reported-at">{formatDateTime(r.reportedAt)}</dd>
+					<dt>Diterima sistem</dt><dd>{formatDateTime(r.receivedAt)}</dd>
+					<dt>Kecamatan</dt><dd data-testid="district">{r.district.name}</dd>
+					<dt>Polsek wilayah</dt><dd>{r.policeSector?.name ?? r.policeSectorNote}</dd>
+					<dt>Koordinat laporan</dt><dd data-testid="coordinate">{formatCoord(r)} <small>({r.locationSource === 'PHOTO' ? 'koordinat foto' : 'GPS perangkat'})</small></dd>
+					<dt>Akurasi GPS</dt><dd data-testid="gps-accuracy">{r.gpsAccuracy === null ? '–' : `± ${formatMeters(r.gpsAccuracy)}`}</dd>
+					<dt>Koordinat foto (EXIF)</dt>
+					<dd data-testid="photo-coordinate">
+						{#if r.photoCoordinate}{formatCoord(r.photoCoordinate)}{:else}{r.photoCoordinateNote}{/if}
+						{#if r.hasLocationMismatch}
+							<span class="flag" data-testid="mismatch-flag">{r.locationMismatchNote}: {formatMeters(r.locationMismatchMeters)}</span>
+						{:else if r.locationMismatchMeters !== null}
+							<small>(selisih {formatMeters(r.locationMismatchMeters)})</small>
+						{/if}
+					</dd>
+					<dt>Keterangan</dt><dd data-testid="description">{r.description ?? '–'}</dd>
+					{#if r.rejection}
+						<dt>Alasan penolakan</dt><dd data-testid="rejection-reason">{r.rejection.reason}{r.rejection.note ? `: ${r.rejection.note}` : ''}</dd>
 					{/if}
-				</dd>
-				<dt>Keterangan</dt><dd data-testid="description">{r.description ?? '–'}</dd>
-				{#if r.rejection}
-					<dt>Alasan penolakan</dt><dd data-testid="rejection-reason">{r.rejection.reason}{r.rejection.note ? `: ${r.rejection.note}` : ''}</dd>
+				</dl>
+			</section>
+			<div class="card" data-testid="duplicates">
+				<h2>Laporan ganda ({r.duplicates.length})</h2>
+				{#if r.duplicates.length === 0}
+					<p class="muted">Tidak ada laporan ganda.</p>
+				{:else}
+					<ul>
+						{#each r.duplicates as d}
+							<li data-testid="duplicate-item"><a href={`/reports/${d.id}`}>{d.reportNumber}</a> · {d.reporterName} · {formatDateTime(d.reportedAt)}</li>
+						{/each}
+					</ul>
 				{/if}
-			</dl>
-		</section>
+			</div>
+		</div>
 
 		<section class="side">
 			<div>
@@ -406,33 +422,36 @@
 				<p><span data-testid="reporter-name">{r.reporter.name}</span>
 					{#if r.reporter.phoneNumber}· <a href={`tel:${r.reporter.phoneNumber}`} data-testid="reporter-phone">{r.reporter.phoneNumber}</a>{/if}</p>
 			</div>
-		</section>
-	</div>
-
-	<div class="grid">
-		<section class="card" data-testid="duplicates">
-			<h2>Laporan ganda ({r.duplicates.length})</h2>
-			{#if r.duplicates.length === 0}
-				<p class="muted">Tidak ada laporan ganda.</p>
-			{:else}
-				<ul>
-					{#each r.duplicates as d}
-						<li data-testid="duplicate-item"><a href={`/reports/${d.id}`}>{d.reportNumber}</a> · {d.reporterName} · {formatDateTime(d.reportedAt)}</li>
-					{/each}
-				</ul>
-			{/if}
-		</section>
-		<section class="card" data-testid="history">
-			<h2>Riwayat Status</h2>
+		<div class="card" data-testid="history">
+			<div class="history-head">
+				<h2>Riwayat Status</h2>
+				<span class="muted small-inline">Terbaru di atas</span>
+			</div>
+			<!-- Urutan DOM tetap kronologis (lama → baru); tampilan dibalik agar yang terbaru di atas. -->
 			<ol class="timeline">
-				{#each r.history as e}
-					<li data-testid="history-item" data-type={e.type} data-activity={e.activity ?? ''}>
-						<strong>{e.type === 'STATUS' ? e.statusLabel : (e.activityLabel ?? 'Kegiatan')}</strong>
-						<span class="muted">{formatDateTime(e.createdAt)}{e.actorName ? ` · ${e.actorName}` : ''}</span>
-						{#if e.note}<p class="small">{e.note}</p>{/if}
+				{#each r.history as e, i}
+					{@const isStatus = e.type === 'STATUS'}
+					{@const isCurrent = isStatus && i === lastStatusIndex}
+					<li data-testid="history-item" data-type={e.type} data-activity={e.activity ?? ''} class:is-status={isStatus} class:is-current={isCurrent}>
+						<span class="tl-marker" aria-hidden="true">
+							{#if isStatus}
+								<span class="tl-pill" style={isCurrent ? `background: ${STATUS_COLORS[e.status as ReportStatus] ?? '#e5341a'}` : ''}>{isCurrent ? 'Saat ini' : 'Status'}</span>
+							{:else}
+								<span class="tl-dot"></span>
+							{/if}
+						</span>
+						<div class="tl-body">
+							<strong class="tl-title">{isStatus ? e.statusLabel : (e.activityLabel ?? 'Kegiatan')}</strong>
+							{#if e.note}<p class="tl-note">{e.note}</p>{/if}
+							<span class="tl-meta">
+								{#if e.actorName}<span>{e.actorName}{e.actorRole && ROLE_LABELS[e.actorRole] ? ` (${ROLE_LABELS[e.actorRole]})` : ''}</span><span class="tl-sep" aria-hidden="true">•</span>{/if}
+								<time datetime={e.createdAt}>{formatDateTime(e.createdAt)}</time>
+							</span>
+						</div>
 					</li>
 				{/each}
 			</ol>
+		</div>
 		</section>
 	</div>
 </main>
@@ -446,7 +465,7 @@
 	.note { font-size: 14px; color: #5b524d; }
 	.grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; margin-bottom: 16px; align-items: start; }
 	@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
-	.side { display: grid; gap: 16px; }
+	.side, .main-col { display: grid; gap: 16px; align-content: start; }
 	.card { background: #fff; border: 1px solid #f0dcd2; border-radius: 12px; padding: 16px; }
 	.photo { width: 100%; max-height: 360px; object-fit: contain; background: #f8f1ed; border-radius: 8px; }
 	.facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; font-size: 14px; margin: 12px 0 0; }
@@ -456,9 +475,6 @@
 	.muted { color: #8a807a; }
 	.small { font-size: 12px; margin: 4px 0 0; }
 	ul { margin: 0; padding-left: 18px; font-size: 14px; }
-	.timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; font-size: 14px; }
-	.timeline li { border-left: 3px solid #ffd8c7; padding-left: 10px; display: grid; }
-	.timeline li[data-type='ACTIVITY'] { border-left-color: #c5d8f0; }
 	a { color: #b4442a; }
 	.legend { list-style: none; display: flex; flex-wrap: wrap; gap: 12px; padding: 0; margin: 6px 0 0; font-size: 12px; color: #5b524d; }
 	.legend span { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; }
@@ -544,4 +560,30 @@
 	.dispatch-meta { display: grid; grid-template-columns: max-content 1fr; gap: 2px 10px; margin: 0; font-size: 12px; color: #5b524d; }
 	.dispatch-meta dt { color: #8a807a; }
 	.dispatch-meta dd { margin: 0; }
+	.history-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+	.history-head h2 { margin: 0; }
+	.timeline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column-reverse; position: relative; }
+	.timeline li { position: relative; display: grid; grid-template-columns: 76px 1fr; gap: 12px; padding-bottom: 18px; }
+	/* garis vertikal menyambung antar entri */
+	.timeline li::before { content: ''; position: absolute; left: 37.25px; top: 0; bottom: 0; width: 1.5px; background: #ece3de; }
+	.timeline li:last-child::before { top: 14px; }
+	.timeline li:first-child { padding-bottom: 0; }
+	.timeline li:first-child::before { bottom: calc(100% - 14px); }
+	.tl-marker { position: relative; z-index: 1; display: flex; justify-content: center; align-items: flex-start; padding-top: 1px; }
+	.tl-pill { display: inline-block; min-width: 54px; text-align: center; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: #f4efec; color: #7a6f69; }
+	.is-current .tl-pill { color: #fff; font-weight: 700; }
+	.tl-dot { width: 9px; height: 9px; margin-top: 4px; border-radius: 50%; background: #c9bfba; box-shadow: 0 0 0 4px #fff; }
+	.tl-body { display: grid; gap: 3px; min-width: 0; }
+	.tl-title { font-size: 14px; font-weight: 500; color: #3b302b; }
+	.is-status .tl-title { font-weight: 600; }
+	.is-current .tl-title { font-weight: 700; color: #1f1612; }
+	.tl-note { margin: 0; font-size: 13px; color: #5b524d; }
+	.tl-meta { font-size: 12px; color: #8a807a; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+	.tl-sep { font-size: 8px; }
+	@media (max-width: 560px) {
+		.timeline li { grid-template-columns: 64px 1fr; }
+		.timeline li::before { left: 31.25px; }
+		.tl-meta { flex-direction: column; align-items: flex-start; gap: 0; }
+		.tl-sep { display: none; }
+	}
 </style>
