@@ -320,30 +320,44 @@
 	{/if}
 
 	<div class="grid">
-		<section class="card">
-			<img class="photo" src={`/reports/${r.id}/photo`} alt={`Foto laporan ${r.reportNumber}`} data-testid="report-photo" />
-			<dl class="facts" data-testid="report-facts">
-				<dt>Waktu lapor</dt><dd data-testid="reported-at">{formatDateTime(r.reportedAt)}</dd>
-				<dt>Diterima sistem</dt><dd>{formatDateTime(r.receivedAt)}</dd>
-				<dt>Kecamatan</dt><dd data-testid="district">{r.district.name}</dd>
-				<dt>Polsek wilayah</dt><dd>{r.policeSector?.name ?? r.policeSectorNote}</dd>
-				<dt>Koordinat laporan</dt><dd data-testid="coordinate">{formatCoord(r)} <small>({r.locationSource === 'PHOTO' ? 'koordinat foto' : 'GPS perangkat'})</small></dd>
-				<dt>Akurasi GPS</dt><dd data-testid="gps-accuracy">{r.gpsAccuracy === null ? '–' : `± ${formatMeters(r.gpsAccuracy)}`}</dd>
-				<dt>Koordinat foto (EXIF)</dt>
-				<dd data-testid="photo-coordinate">
-					{#if r.photoCoordinate}{formatCoord(r.photoCoordinate)}{:else}{r.photoCoordinateNote}{/if}
-					{#if r.hasLocationMismatch}
-						<span class="flag" data-testid="mismatch-flag">{r.locationMismatchNote}: {formatMeters(r.locationMismatchMeters)}</span>
-					{:else if r.locationMismatchMeters !== null}
-						<small>(selisih {formatMeters(r.locationMismatchMeters)})</small>
+		<div class="main-col">
+			<section class="card">
+				<img class="photo" src={`/reports/${r.id}/photo`} alt={`Foto laporan ${r.reportNumber}`} data-testid="report-photo" />
+				<dl class="facts" data-testid="report-facts">
+					<dt>Waktu lapor</dt><dd data-testid="reported-at">{formatDateTime(r.reportedAt)}</dd>
+					<dt>Diterima sistem</dt><dd>{formatDateTime(r.receivedAt)}</dd>
+					<dt>Kecamatan</dt><dd data-testid="district">{r.district.name}</dd>
+					<dt>Polsek wilayah</dt><dd>{r.policeSector?.name ?? r.policeSectorNote}</dd>
+					<dt>Koordinat laporan</dt><dd data-testid="coordinate">{formatCoord(r)} <small>({r.locationSource === 'PHOTO' ? 'koordinat foto' : 'GPS perangkat'})</small></dd>
+					<dt>Akurasi GPS</dt><dd data-testid="gps-accuracy">{r.gpsAccuracy === null ? '–' : `± ${formatMeters(r.gpsAccuracy)}`}</dd>
+					<dt>Koordinat foto (EXIF)</dt>
+					<dd data-testid="photo-coordinate">
+						{#if r.photoCoordinate}{formatCoord(r.photoCoordinate)}{:else}{r.photoCoordinateNote}{/if}
+						{#if r.hasLocationMismatch}
+							<span class="flag" data-testid="mismatch-flag">{r.locationMismatchNote}: {formatMeters(r.locationMismatchMeters)}</span>
+						{:else if r.locationMismatchMeters !== null}
+							<small>(selisih {formatMeters(r.locationMismatchMeters)})</small>
+						{/if}
+					</dd>
+					<dt>Keterangan</dt><dd data-testid="description">{r.description ?? '–'}</dd>
+					{#if r.rejection}
+						<dt>Alasan penolakan</dt><dd data-testid="rejection-reason">{r.rejection.reason}{r.rejection.note ? `: ${r.rejection.note}` : ''}</dd>
 					{/if}
-				</dd>
-				<dt>Keterangan</dt><dd data-testid="description">{r.description ?? '–'}</dd>
-				{#if r.rejection}
-					<dt>Alasan penolakan</dt><dd data-testid="rejection-reason">{r.rejection.reason}{r.rejection.note ? `: ${r.rejection.note}` : ''}</dd>
+				</dl>
+			</section>
+			<div class="card" data-testid="duplicates">
+				<h2>Laporan ganda ({r.duplicates.length})</h2>
+				{#if r.duplicates.length === 0}
+					<p class="muted">Tidak ada laporan ganda.</p>
+				{:else}
+					<ul>
+						{#each r.duplicates as d}
+							<li data-testid="duplicate-item"><a href={`/reports/${d.id}`}>{d.reportNumber}</a> · {d.reporterName} · {formatDateTime(d.reportedAt)}</li>
+						{/each}
+					</ul>
 				{/if}
-			</dl>
-		</section>
+			</div>
+		</div>
 
 		<section class="side">
 			<div>
@@ -408,23 +422,7 @@
 				<p><span data-testid="reporter-name">{r.reporter.name}</span>
 					{#if r.reporter.phoneNumber}· <a href={`tel:${r.reporter.phoneNumber}`} data-testid="reporter-phone">{r.reporter.phoneNumber}</a>{/if}</p>
 			</div>
-		</section>
-	</div>
-
-	<div class="grid">
-		<section class="card" data-testid="duplicates">
-			<h2>Laporan ganda ({r.duplicates.length})</h2>
-			{#if r.duplicates.length === 0}
-				<p class="muted">Tidak ada laporan ganda.</p>
-			{:else}
-				<ul>
-					{#each r.duplicates as d}
-						<li data-testid="duplicate-item"><a href={`/reports/${d.id}`}>{d.reportNumber}</a> · {d.reporterName} · {formatDateTime(d.reportedAt)}</li>
-					{/each}
-				</ul>
-			{/if}
-		</section>
-		<section class="card" data-testid="history">
+		<div class="card" data-testid="history">
 			<div class="history-head">
 				<h2>Riwayat Status</h2>
 				<span class="muted small-inline">Terbaru di atas</span>
@@ -453,6 +451,7 @@
 					</li>
 				{/each}
 			</ol>
+		</div>
 		</section>
 	</div>
 </main>
@@ -466,7 +465,7 @@
 	.note { font-size: 14px; color: #5b524d; }
 	.grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; margin-bottom: 16px; align-items: start; }
 	@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
-	.side { display: grid; gap: 16px; }
+	.side, .main-col { display: grid; gap: 16px; align-content: start; }
 	.card { background: #fff; border: 1px solid #f0dcd2; border-radius: 12px; padding: 16px; }
 	.photo { width: 100%; max-height: 360px; object-fit: contain; background: #f8f1ed; border-radius: 8px; }
 	.facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; font-size: 14px; margin: 12px 0 0; }
