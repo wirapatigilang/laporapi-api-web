@@ -6,7 +6,7 @@ Baca `.specify/memory/constitution.md` lebih dahulu; isinya mengikat.
 - Spesifikasi per use case di `specs/NNN-ucXX-nama/` (spec, plan, data-model, contracts, tasks, reviews, test-results).
 - Istilah domain ↔ identifier: `docs/glossary.md`. Identifier bahasa Inggris, teks UI dan pesan galat bahasa Indonesia.
 - Haversine dan point-in-polygon di API (`apps/api/src/services/geo.ts`), tanpa PostGIS.
-- Status laporan: `RECEIVED`, `VERIFIED`, `REJECTED`, `ASSIGNED`, `IN_PROGRESS`, `RESOLVED`.
+- Status laporan: `RECEIVED`, `VERIFIED`, `REJECTED`, `ASSIGNED`, `IN_PROGRESS`, `RESOLVED`, `CLOSED` (Laporan Ditutup oleh Warga atau otomatis 3 hari, UC-13; spec 2026-11-26, kode belum).
 - Jangan mengubah kontrak API yang sudah dipakai tanpa memperbarui spec dan menjalankan ulang uji fitur terdahulu.
 
 ## Perintah

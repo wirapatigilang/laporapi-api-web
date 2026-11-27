@@ -71,3 +71,11 @@ Alternate course:
 - Dialog konfirmasi menampilkan perubahan status (Penanganan Berlangsung → Penanganan Selesai) dan akibatnya, tanpa isian catatan (ASUMSI-20 tetap).
 - Bagian Klarifikasi tentang "Petugas Instansi mana yang berhak" dan Acceptance Scenario 2 dan 4 di atas digantikan oleh amandemen ini.
 - Kasus uji diubah: UJ-12.01 (Admin menyatakan selesai lewat web), UJ-12.02 (tombol Admin tidak aktif pada Petugas Ditugaskan), UJ-12.04 (Petugas Instansi → 403, tombol tidak tampil), UJ-12.05 (penolakan Laporan Selesai → 409), UJ-12.07 (Admin menyatakan selesai tanpa Penerusan; Petugas Instansi → 403).
+
+## Amandemen 2026-11-26 (status Laporan Ditutup, UC-13)
+
+- Penanganan Selesai (`RESOLVED`) **bukan lagi status akhir**. Setelah Admin Polres menyatakan selesai, Warga pembuat laporan utama menutup laporan (`CLOSED`) atau menolak penutupan (kembali `IN_PROGRESS`); tanpa tanggapan, Sistem menutup otomatis 3 × 24 jam kemudian. Lihat `specs/013-uc13-close-report/spec.md`.
+- `resolve` MUST mengisi `Report.resolvedAt` (dasar `autoCloseAt`).
+- Notifikasi ke Warga berubah menjadi "Penanganan selesai. Tutup laporan bila api sudah padam, atau pilih Api Belum Padam. Laporan tertutup otomatis dalam 3 hari"; Notifikasi ke Operator Polsek dan Petugas Instansi tetap "api sudah padam".
+- FR-004 dibaca: status selain Penanganan Berlangsung 409; Laporan Penanganan Selesai hanya dapat diubah lewat UC-13.
+- Uji ulang: UJ-12.01 (isi Notifikasi Warga, `resolvedAt`), UJ-12.05 (pesan 409 tetap, alasan berbeda).

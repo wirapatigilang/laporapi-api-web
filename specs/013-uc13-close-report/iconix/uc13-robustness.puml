@@ -1,0 +1,70 @@
+@startuml
+left to right direction
+title Robustness Diagram UC-13 Menutup Laporan
+actor "Warga" as wrg
+actor "Waktu" as jdw
+boundary "AutoCloseJob (penjadwal, setiap menit)" as bJadwal
+control "Tampilkan dialog konfirmasi (Penanganan Selesai → Laporan Ditutup)" as cKonf
+boundary "Layar Detail Laporan (Android)" as bDetail
+boundary "Dialog Tutup Laporan / Isian Alasan Api Belum Padam (Android)" as bKonf
+control "Periksa token dan peran Warga [4d]" as cPeran
+control "Tolak: tidak diizinkan [4a, 4d]" as cErrIzin
+control "Tutup dialog tanpa perubahan [2c]" as cBatal
+control "Periksa Laporan milik Warga [4a]" as cMilik
+control "Periksa Laporan adalah laporan utama Kejadian [4b]" as cUtama
+control "Tolak: status laporan ganda mengikuti laporan utama" as cErrGanda
+control "Periksa status Penanganan Selesai [4c]" as cStatus
+control "Tolak: belum dinyatakan selesai / sudah ditutup" as cErrStatus
+control "Periksa alasan 1–300 karakter [2a, 2b]" as cAlasan
+control "Tolak: alasan wajib diisi" as cErrAlasan
+control "Ubah status Laporan dan laporan ganda menjadi Laporan Ditutup" as cTutup
+control "Kembalikan ke Penanganan Berlangsung dan buka kembali tiket Kejadian [2a]" as cBuka
+control "Cari Laporan Penanganan Selesai ≥ 3 × 24 jam [3a]" as cKadaluarsa
+control "Catat Riwayat Status (pengubah Warga atau Sistem)" as cRiwayat
+control "Kirim Notifikasi ke Admin Polres (tutup), petugas (api belum padam), Warga (otomatis)" as cNotif
+entity "User (Pengguna)" as ePengguna
+entity "Report (Laporan)" as eLaporan
+entity "Incident (Kejadian)" as eKejadian
+entity "StatusHistory (Riwayat Status)" as eRiwayat
+entity "Notification (Notifikasi)" as eNotif
+boundary "Layanan Push (mis. FCM)" as bPush
+wrg --> bDetail
+wrg --> bKonf
+bDetail --> cKonf
+cKonf --> bKonf
+bKonf --> cBatal
+cBatal --> bDetail
+bKonf --> cPeran
+cPeran --> ePengguna
+cPeran --> cErrIzin
+cErrIzin --> bDetail
+cPeran --> cMilik
+cMilik --> eLaporan : cek
+cMilik --> cErrIzin
+cMilik --> cUtama
+cUtama --> eKejadian : cek
+cUtama --> cErrGanda
+cErrGanda --> bDetail
+cUtama --> cStatus
+cStatus --> cErrStatus
+cErrStatus --> bDetail
+cStatus --> cTutup : tutup
+cStatus --> cAlasan : tolak penutupan
+cAlasan --> cErrAlasan
+cErrAlasan --> bKonf
+cAlasan --> cBuka
+cTutup --> eKejadian
+cTutup --> cRiwayat
+cBuka --> eKejadian
+cBuka --> cRiwayat
+jdw --> bJadwal
+bJadwal --> cKadaluarsa
+cKadaluarsa --> eLaporan : cari
+cKadaluarsa --> cTutup
+cRiwayat --> eRiwayat
+cTutup --> cNotif
+cBuka --> cNotif
+cNotif --> eNotif
+cNotif --> bPush
+cTutup --> bDetail
+@enduml

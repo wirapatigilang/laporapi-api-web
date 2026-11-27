@@ -87,3 +87,9 @@ Alternate course:
 - Tombol Mulai Penanganan aktif hanya bila Laporan berstatus Petugas Ditugaskan dan diteruskan ke Instansi petugas tersebut.
 - Petugas Instansi tidak lagi menyatakan Penanganan Selesai (lihat amandemen UC-12). `nextStatus: RESOLVED` dari Petugas Instansi → 403.
 - Kasus uji UJ-11.04 ditambah langkah menekan Ya pada dialog konfirmasi.
+
+## Amandemen 2026-11-26 (status Laporan Ditutup, UC-13)
+
+- Alternate 4a dibaca: pencatatan keberangkatan ditolak bila Laporan sudah Ditolak, Selesai, atau Ditutup. `POST /api/reports/:id/status` tidak menerima `CLOSED` (hanya lewat UC-13).
+- Laporan yang kembali ke Penanganan Berlangsung karena Warga menolak penutupan dapat ditangani lagi tanpa langkah Mulai Penanganan ulang.
+- Uji ulang: kasus status akhir UC-11.

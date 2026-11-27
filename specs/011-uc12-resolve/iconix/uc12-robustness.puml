@@ -13,7 +13,7 @@ control "Minta konfirmasi (tanpa catatan)" as cKonf
 control "Ubah status Laporan dan laporan ganda menjadi Penanganan Selesai" as cUbah
 control "Tutup tiket Kejadian" as cTutup
 control "Catat Riwayat Status" as cRiwayat
-control "Kirim Notifikasi 'api sudah padam' ke Warga, Operator Polsek, Petugas Instansi penerima Penerusan" as cNotif
+control "Kirim Notifikasi 'api sudah padam' ke Operator Polsek dan Petugas Instansi; Warga diminta menutup Laporan (UC-13)" as cNotif
 entity "User (Pengguna)" as ePengguna
 entity "Report (Laporan)" as eLaporan
 entity "Incident (Kejadian)" as eKejadian

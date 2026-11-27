@@ -1,5 +1,6 @@
 <!--
 Sync Impact Report
+- Versi: 1.0.1 → 1.1.0 (MINOR, 2026-11-26): status ketujuh `CLOSED` (Laporan Ditutup) dan use case UC-13 Menutup Laporan (keputusan Gilang). Prinsip I menyebut UC-01 sampai UC-13; Prinsip V memuat tujuh kode status, dua pengecualian aturan maju satu tahap, dan status akhir `REJECTED`/`CLOSED`. Fitur terdahulu yang terdampak dicatat di specs/013-uc13-close-report/spec.md.
 - Versi: 1.0.0 → 1.0.1 (PATCH, 2026-11-25): nama peran REPORTER diganti CITIZEN karena aktor Pelapor diganti nama menjadi Warga; isi prinsip tidak berubah.
 - Versi: (template) → 1.0.0
 - Prinsip baru: I–VII (semua baru, proyek baru)
@@ -15,7 +16,7 @@ Lapor Api adalah aplikasi pelaporan titik kebakaran hutan dan lahan (karhutla) o
 
 ### I. Satu use case ICONIX = satu fitur Spec Kit
 
-Setiap fitur di `specs/NNN-ucXX-.../` berasal dari tepat satu use case ICONIX (UC-01 sampai UC-12). Teks use case (basic course dan alternate course) dituangkan ke `spec.md` sebagai skenario penerimaan; satu alternate course menjadi sekurang-kurangnya satu skenario. Urutan pengerjaan mengikuti ketergantungan antar-use case (Tabel 4.8 skripsi). Satu putaran berisi: specify → clarify → Requirements Review → robustness diagram + Preliminary Design Review → plan (sequence diagram, class diagram, kontrak API) + analyze → Critical Design Review → tasks → implement/converge → Black Box Testing.
+Setiap fitur di `specs/NNN-ucXX-.../` berasal dari tepat satu use case ICONIX (UC-01 sampai UC-13). Teks use case (basic course dan alternate course) dituangkan ke `spec.md` sebagai skenario penerimaan; satu alternate course menjadi sekurang-kurangnya satu skenario. Urutan pengerjaan mengikuti ketergantungan antar-use case (Tabel 4.8 skripsi). Satu putaran berisi: specify → clarify → Requirements Review → robustness diagram + Preliminary Design Review → plan (sequence diagram, class diagram, kontrak API) + analyze → Critical Design Review → tasks → implement/converge → Black Box Testing.
 
 ### II. Spesifikasi lebih dahulu, kode menyusul
 
@@ -42,7 +43,7 @@ Layanan API dipakai juga oleh aplikasi Android (skripsi rekan). Karena itu:
 - Setiap *endpoint* didokumentasikan di `contracts/` fitur (OpenAPI 3.1) sebelum diimplementasikan.
 - Format JSON; kode status konsisten: 200/201 berhasil, 401 belum masuk atau token tidak sah, 403 peran tidak diizinkan, 409 bentrok status atau data sudah ada, 422 data tidak valid.
 - Galat berbentuk `{ "error": { "code": "...", "message": "<pesan bahasa Indonesia>", "fields"?: { "<kolom>": "<pesan>" } } }`.
-- Kode status laporan: `RECEIVED`, `VERIFIED`, `REJECTED`, `ASSIGNED`, `IN_PROGRESS`, `RESOLVED`. Status hanya maju satu tahap; `REJECTED` dan `RESOLVED` adalah status akhir.
+- Kode status laporan: `RECEIVED`, `VERIFIED`, `REJECTED`, `ASSIGNED`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`. Status hanya maju satu tahap, dengan dua pengecualian: `REJECTED` dari status aktif mana pun (`RECEIVED` sampai `IN_PROGRESS`), dan `RESOLVED → IN_PROGRESS` saat Warga menolak penutupan (UC-13). `REJECTED` dan `CLOSED` adalah status akhir.
 - Perubahan kontrak yang sudah dipakai fitur sebelumnya dicatat sebagai perubahan spec dan memicu uji ulang (regresi) fitur terdahulu.
 
 ### VI. Black Box Testing sebagai bukti penerimaan
@@ -71,4 +72,4 @@ Tidak dibangun: pelacakan posisi petugas *real-time*, laporan otomatis dari titi
 
 Constitution ini mengalahkan kebiasaan lain di repositori. Perubahan prinsip dilakukan dengan mengubah file ini, menaikkan versi (MAJOR: prinsip dihapus/diubah maknanya; MINOR: prinsip baru; PATCH: perbaikan kalimat), dan mencatat alasannya di Sync Impact Report. Setiap `plan.md` wajib memuat Constitution Check terhadap prinsip I–VII.
 
-**Version**: 1.0.1 | **Ratified**: 2026-11-24 | **Last Amended**: 2026-11-25
+**Version**: 1.1.0 | **Ratified**: 2026-11-24 | **Last Amended**: 2026-11-26

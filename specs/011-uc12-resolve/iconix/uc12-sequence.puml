@@ -19,11 +19,12 @@ alt 1a. belum Penanganan Berlangsung
 tgn --> det : 409 status belum Penanganan Berlangsung
 else boleh
 note over pet : 4. Sistem mengubah status (juga laporan ganda), mencatat riwayat, menutup tiket.
-tgn -> kjd : applyStatus(RESOLVED, admin)
+tgn -> kjd : applyStatus(RESOLVED, admin); resolvedAt = now
 tgn -> kjd : close()
 tgn -> rws : record(STATUS, RESOLVED, admin)
-note over pet : 5. Notifikasi ke Warga, Operator Polsek, dan Petugas Instansi penerima Penerusan.
-tgn -> ntf : send(reporters + operators + dispatched officers, 'api sudah padam')
+note over pet : 5. Notifikasi ke Operator Polsek dan Petugas Instansi; Warga diminta menutup Laporan (UC-13).
+tgn -> ntf : send(operators + dispatched officers, 'api sudah padam')
+tgn -> ntf : send(reporters, 'tutup laporan, otomatis dalam 3 hari')
 tgn --> det : 200 updated report
 end
 det --> pet : tampilkan Penanganan Selesai
