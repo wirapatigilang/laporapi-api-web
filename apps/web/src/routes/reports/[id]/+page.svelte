@@ -95,13 +95,29 @@
 
 	{#if isAdmin}
 		<section class="card actions" data-testid="admin-actions" aria-label="Tindakan Admin Polres">
-			<div class="buttons">
-				<button type="button" class="primary" data-testid="verify-button" disabled={!canDecide || busy} onclick={() => (confirming = 'verify')}>Verifikasi</button>
-				<button type="button" class="danger" data-testid="reject-button" disabled={!canReject || busy} onclick={() => (confirming = 'reject')}>Tolak</button>
-				<button type="button" class="ghost" data-testid="contact-button" onclick={() => (showPhone = !showPhone)}>Hubungi Warga</button>
-				<button type="button" class="ghost" data-testid="field-check-button" disabled={!canDecide} onclick={() => (showFieldCheck = !showFieldCheck)}>Minta cek lapangan</button>
-				<button type="button" class="primary" data-testid="dispatch-button" disabled={!canDispatch || busy} onclick={openDispatch}>Teruskan ke Instansi</button>
-				<button type="button" class="primary" data-testid="resolve-button" disabled={!canResolve || busy} onclick={() => (confirming = 'resolve')}>Nyatakan Selesai</button>
+			<div class="action-bar">
+				<div class="group" role="group" aria-labelledby="grp-flow">
+					<span class="group-label" id="grp-flow">Alur penanganan</span>
+					<div class="buttons">
+						<button type="button" class="primary" data-testid="verify-button" disabled={!canDecide || busy} title={canDecide ? undefined : 'Hanya untuk laporan berstatus Laporan Diterima'} onclick={() => (confirming = 'verify')}>Verifikasi</button>
+						<button type="button" class="primary" data-testid="dispatch-button" disabled={!canDispatch || busy} title={canDispatch ? undefined : 'Laporan harus diverifikasi lebih dahulu'} onclick={openDispatch}>Teruskan ke Instansi</button>
+						<button type="button" class="primary" data-testid="resolve-button" disabled={!canResolve || busy} title={canResolve ? undefined : 'Hanya saat Penanganan Berlangsung'} onclick={() => (confirming = 'resolve')}>Nyatakan Selesai</button>
+					</div>
+				</div>
+				<div class="group" role="group" aria-labelledby="grp-contact">
+					<span class="group-label" id="grp-contact">Komunikasi</span>
+					<div class="buttons">
+						<button type="button" class="ghost" data-testid="contact-button" aria-pressed={showPhone} onclick={() => (showPhone = !showPhone)}>Hubungi Warga</button>
+						<button type="button" class="ghost" data-testid="field-check-button" disabled={!canDecide} aria-pressed={showFieldCheck} title={canDecide ? undefined : 'Hanya untuk laporan berstatus Laporan Diterima'} onclick={() => (showFieldCheck = !showFieldCheck)}>Minta Cek Lapangan</button>
+					</div>
+				</div>
+				<div class="group danger-zone" role="group" aria-labelledby="grp-danger">
+					<span class="group-label" id="grp-danger">Pembatalan</span>
+					<div class="buttons">
+						<!-- Label UI "Batalkan"; status API tetap REJECTED (Laporan Ditolak). -->
+						<button type="button" class="danger" data-testid="reject-button" disabled={!canReject || busy} title={canReject ? 'Status menjadi Laporan Ditolak' : 'Laporan sudah berstatus akhir'} onclick={() => (confirming = 'reject')}>Batalkan Laporan</button>
+					</div>
+				</div>
 			</div>
 			{#if showPhone}
 				<p class="contact" data-testid="contact-info">Hubungi {r.reporter.name}:
@@ -161,11 +177,11 @@
 		<div class="backdrop" role="presentation">
 			<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="reject-title" data-testid="reject-dialog">
 				<p class="eyebrow danger-text">Ubah status</p>
-				<h2 id="reject-title">Tolak laporan {r.reportNumber}?</h2>
+				<h2 id="reject-title">Batalkan laporan {r.reportNumber}?</h2>
 				{@render transition('REJECTED')}
 				<form method="POST" action="?/reject" use:enhance={submitting} class="stack">
 					<fieldset class="reasons">
-						<legend>Alasan penolakan</legend>
+						<legend>Alasan pembatalan</legend>
 						{#each data.rejectionReasons as reason}
 							<label class="radio"><input type="radio" name="reasonId" value={reason.id} checked={values.reasonId === reason.id} data-testid="reason-option" />{reason.label}</label>
 						{/each}
@@ -181,7 +197,7 @@
 					</ul>
 					<div class="buttons end">
 						<button type="button" class="ghost" data-testid="reject-cancel" onclick={() => (confirming = null)}>Batal</button>
-						<button type="submit" class="danger-solid" data-testid="reject-submit" disabled={busy}>Ya, tolak laporan</button>
+						<button type="submit" class="danger-solid" data-testid="reject-submit" disabled={busy}>Ya, batalkan laporan</button>
 					</div>
 				</form>
 			</div>
@@ -435,8 +451,23 @@
 	button { font: inherit; font-size: 14px; font-weight: 600; border-radius: 8px; padding: 8px 14px; cursor: pointer; border: 1px solid transparent; }
 	button.primary { color: #fff; background: linear-gradient(90deg, #ff7a45, #e81a12); }
 	button.ghost { background: #fff; color: #b4442a; border-color: #f0c4b2; }
-	button.danger { background: #fff; color: #c92a2a; border-color: #ffc9c9; }
-	button:disabled { opacity: 0.45; cursor: not-allowed; }
+	button.danger { background: #c92a2a; color: #fff; box-shadow: 0 6px 14px -8px rgba(201, 42, 42, 0.7); }
+	button.danger:not(:disabled):hover { background: #a61e1e; }
+	button.primary:not(:disabled):hover { filter: brightness(0.95); }
+	button.ghost:not(:disabled):hover, button.ghost[aria-pressed='true'] { background: #fff6f1; border-color: #e5341a; }
+	button:disabled, button.primary:disabled, button.danger:disabled { background: #f4f1ef; color: #a39892; border-color: #e6e0dc; box-shadow: none; filter: none; cursor: not-allowed; }
+	button:focus-visible { outline: 2px solid #e5341a; outline-offset: 2px; }
+	.action-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 24px; }
+	.group { display: grid; gap: 6px; }
+	.group + .group { padding-left: 24px; border-left: 1px solid #f0dcd2; }
+	.group-label { font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: #8a807a; }
+	.danger-zone { margin-left: auto; }
+	.danger-zone .group-label { color: #c92a2a; }
+	@media (max-width: 720px) {
+		.group + .group { padding-left: 0; border-left: 0; padding-top: 12px; border-top: 1px solid #f0dcd2; }
+		.action-bar { flex-direction: column; align-items: stretch; }
+		.danger-zone { margin-left: 0; }
+	}
 	.stack { display: grid; gap: 6px; font-size: 14px; }
 	textarea { font: inherit; font-size: 14px; padding: 8px; border: 1px solid #dccfc8; border-radius: 8px; background: #fffdfc; }
 	.field-error { color: #c92a2a; }
